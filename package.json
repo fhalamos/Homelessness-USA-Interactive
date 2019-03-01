@@ -1,0 +1,16 @@
+{
+  "name": "Reverse_Scatterplot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "live-server",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "eslint": "^3.13.1",
+    "eslint-config-uber-es2015": "^3.0.1",
+    "live-server": "^0.7"
+  },
+  "author": "Felipe Alamos"
+}
