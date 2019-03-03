@@ -52,12 +52,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 //Indicates if row is a row of totals per year (not a particular state)
-function isTotalRow(d){
-  if(d['State']==='Total'){
+function selectRow(d,state){
+  if(d['State']===state){
     return true;
   }
   return false;
 }
+
 
 
 function createPlot(data){
@@ -78,7 +79,7 @@ function createPlot(data){
     };
   }, {min: Infinity, max: -Infinity});
 
-  const toNum = d => parseInt(d.replace(',','')) 
+  const toNum = d => parseInt(d.replace(',',''));
 
 
   const yDomain = data.reduce((acc, row) => {
@@ -108,56 +109,7 @@ function createPlot(data){
   
   const g =  svg.append('g')
     .attr('transform',`translate(${margin.left},${margin.top})`);
-  
 
-
-  const overall_circles = g.selectAll('.circ overall')
-    .data(data.filter(function(d){
-      return isFinite(toNum(d["Overall Homeless"])) && isTotalRow(d);
-      }));
-
-  overall_circles.enter()
-    .append('circle')
-    .transition()
-    .duration(1000)   
-    .delay( d => (d["Year"]-2007)*100)
-    .attr('class', 'circ overall')
-    .attr('r', 5)
-    .attr('cx', d => xScale(d["Year"]))
-    .attr('cy', d => yScale(toNum(d["Overall Homeless"])));
-     
-
-  const sheltered_circles = g.selectAll('.circ sheltered')
-    .data(data.filter(function(d){
-      return isFinite(toNum(d["Sheltered Total Homeless"])) && isTotalRow(d);
-      }));
-
-  sheltered_circles.enter()
-    .append('circle')
-    .transition()
-    .duration(2000)   
-    .delay(d => 2000+(d["Year"]-2007)*100)
-    .attr('class', 'circ sheltered')
-    .attr('r', 5)
-    .attr('cx', d => xScale(d["Year"]))
-    .attr('cy', d => yScale(toNum(d["Sheltered Total Homeless"])));
-   
-  const unsheltered_circles = g.selectAll('.circ unsheltered')
-    .data(data.filter(function(d){
-      return isFinite(toNum(d["Unsheltered Homeless"])) && isTotalRow(d);
-      }));
-
-  unsheltered_circles.enter()
-    .append('circle')
-    .transition()
-    .duration(2000)   
-    .delay(d => 2000+(d["Year"]-2007)*100)
-    .attr('class', 'circ unsheltered')
-    .attr('r', 5)
-    .attr('cx', d => xScale(d["Year"]))
-    .attr('cy', d => yScale(toNum(d["Unsheltered Homeless"]))); 
-
-   
   //Axis
   g.append('g')
     .call(d3.axisBottom(xScale))
@@ -232,11 +184,53 @@ function createPlot(data){
     .text(d => d.label);
 
 
+
+
+
+
+
+
+
+
+  //Lines
+
+  //Based on https://bl.ocks.org/gordlea/27370d1eea8464b04538e6d8ced39e89#index.html
+  
+  //OVERALL HOMELESS
+  //d3's line generator
+
+
+  var delay1=2000;
+  var duration1=2000;
+
+  var overall_line = d3.line()
+      .x(function(d) { return xScale(d["Year"]); }) 
+      .y(function(d) { return yScale(toNum(d["Overall Homeless"])); })
+      .curve(d3.curveMonotoneX); // apply smoothing to the line
+
+  //Append the path, bind the data, and call the line generator 
+  g.append("path")
+      .datum(
+        data.filter(function(d){
+          return isFinite(toNum(d["Overall Homeless"])) && selectRow(d,'Total');
+        })
+      ) // 10. Binds data to the line 
+      .transition()
+      .attr("opacity", 1)
+      .duration(duration1)   
+      .delay(delay1)
+      .attr("class", "line_overall") // Assign a class for styling 
+      .attr("d", overall_line) // Calls the line generator
+      .transition()
+      .duration(3000)
+      //.remove();
+      .attr("opacity", 0.2);
+
   //Legend
   g.append("rect")
     .transition()
-    .duration(2000)   
-    .delay(1000)
+    .duration(duration1)   
+    .delay(delay1)
     .attr('class', 'rect overall')
     .attr('height',20)
     .attr('width',20)
@@ -245,8 +239,8 @@ function createPlot(data){
 
   g.append("text")
     .transition()
-    .duration(2000)   
-    .delay(1000)
+    .duration(duration1)   
+    .delay(delay1)
     .attr('class', 'text overall')
     .attr('height',20)
     .attr('width',20)
@@ -254,10 +248,38 @@ function createPlot(data){
     .attr('y', 40)
     .text('Overall homeless')
 
+
+
+  var delay2=4000;
+  var duration2=2000;
+
+  //Sheltered homeless line
+  
+  var sheltered_line = d3.line()
+      .x(function(d) { return xScale(d["Year"]); }) 
+      .y(function(d) { return yScale(toNum(d["Sheltered Total Homeless"])); })
+      .curve(d3.curveMonotoneX); // apply smoothing to the line
+
+  g.append("path")
+      .datum(
+        data.filter(function(d){
+          return isFinite(toNum(d["Sheltered Total Homeless"])) && selectRow(d,'Total');
+        })
+      ) 
+      .transition()
+      .attr("opacity", 1)
+      .duration(duration2)   
+      .delay(delay2)
+      .attr("class", "line_sheltered") 
+      .attr("d", sheltered_line)
+      .transition()
+      .attr("opacity", 0.2);
+      //.remove();
+
   g.append("rect")
     .transition()
-    .duration(2000)   
-    .delay(3000)
+    .duration(duration2)   
+    .delay(delay2)
     .attr('class', 'rect sheltered')
     .attr('height',20)
     .attr('width',20)
@@ -266,8 +288,8 @@ function createPlot(data){
 
   g.append("text")
     .transition()
-    .duration(2000)   
-    .delay(3000)
+    .duration(duration2)   
+    .delay(delay2)
     .attr('class', 'text sheltered')
     .attr('height',20)
     .attr('width',20)
@@ -275,10 +297,36 @@ function createPlot(data){
     .attr('y', 70)
     .text('Sheltered homeless')
 
+
+  //Unsheltered homeless line
+  var unsheltered_line = d3.line()
+      .x(function(d) { return xScale(d["Year"]); }) 
+      .y(function(d) { return yScale(toNum(d["Unsheltered Homeless"])); })
+      .curve(d3.curveMonotoneX); // apply smoothing to the line
+
+  g.append("path")
+      .datum(
+        data.filter(function(d){
+          return isFinite(toNum(d["Unsheltered Homeless"])) && selectRow(d,'Total');
+        })
+      ) // 10. Binds data to the line 
+      .transition()
+      .attr("opacity", 1)
+      .duration(duration2)   
+      .delay(delay2)
+      .attr("class", "line_unsheltered") 
+      .attr("d", unsheltered_line)
+      .transition()
+      //.duration(3000)
+      .attr("opacity", 0.2);
+//      .remove();
+
+
+
   g.append("rect")
     .transition()
-    .duration(2000)   
-    .delay(3000)
+    .duration(duration2)   
+    .delay(delay2)
     .attr('class', 'rect unsheltered')
     .attr('height',20)
     .attr('width',20)
@@ -287,13 +335,111 @@ function createPlot(data){
 
   g.append("text")
     .transition()
-    .duration(2000)   
-    .delay(3000)
+    .duration(duration2)   
+    .delay(delay2)
     .attr('class', 'text unsheltered')
     .attr('height',20)
     .attr('width',20)
     .attr('x', plotWidth+margin.right/2)
     .attr('y', 100)
     .text('Unsheltered homeless')
+
+
+
+
+
+
+
+  var delay3=6000;
+  var duration3=2000;
+
+
+  //Homeless newyork
+  var newyork_line = d3.line()
+      .x(function(d) { return xScale(d["Year"]); }) 
+      .y(function(d) { return yScale(toNum(d["Overall Homeless"])); })
+      .curve(d3.curveMonotoneX); // apply smoothing to the line
+
+  g.append("path")
+      .datum(
+        data.filter(function(d){
+          return isFinite(toNum(d["Overall Homeless"])) && selectRow(d,'NY');
+        })
+      ) // 10. Binds data to the line 
+      .transition()
+      .attr("opacity", 1)
+      .duration(duration3)   
+      .delay(delay3)
+      .attr("class", "line_newyork") 
+      .attr("d", newyork_line)
+      .transition()
+      //.duration(3000)
+      .attr("opacity", 0.2);
+ 
+  g.append("rect")
+    .transition()
+    .duration(duration3)   
+    .delay(delay3)
+    .attr('class', 'rect newyork')
+    .attr('height',20)
+    .attr('width',20)
+    .attr('x', plotWidth+margin.right/2-25)
+    .attr('y', 115)
+
+  g.append("text")
+    .transition()
+    .duration(duration3)   
+    .delay(delay3)
+    .attr('class', 'text newyork')
+    .attr('height',20)
+    .attr('width',20)
+    .attr('x', plotWidth+margin.right/2)
+    .attr('y', 130)
+    .text('Homeless in NY')
+
+
+  //Homeless michigan
+  var michigan_line = d3.line()
+      .x(function(d) { return xScale(d["Year"]); }) 
+      .y(function(d) { return yScale(toNum(d["Overall Homeless"])); })
+      .curve(d3.curveMonotoneX); // apply smoothing to the line
+
+  g.append("path")
+      .datum(
+        data.filter(function(d){
+          return isFinite(toNum(d["Overall Homeless"])) && selectRow(d,'TX');
+        })
+      ) // 10. Binds data to the line 
+      .transition()
+      .attr("opacity", 1)
+      .duration(duration3)   
+      .delay(delay3)
+      .attr("class", "line_michigan") 
+      .attr("d", michigan_line)
+      .transition()
+      //.duration(3000)
+      .attr("opacity", 0.2);
+
+  g.append("rect")
+    .transition()
+    .duration(duration3)   
+    .delay(delay3)
+    .attr('class', 'rect michigan')
+    .attr('height',20)
+    .attr('width',20)
+    .attr('x', plotWidth+margin.right/2-25)
+    .attr('y', 145)
+
+  g.append("text")
+    .transition()
+    .duration(duration3)   
+    .delay(delay3)
+    .attr('class', 'text michigan')
+    .attr('height',20)
+    .attr('width',20)
+    .attr('x', plotWidth+margin.right/2)
+    .attr('y', 160)
+    .text('Homeless in MI')
+
 
 };

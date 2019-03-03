@@ -9,3 +9,41 @@
 .unsheltered{
 	fill: green;
 }
+
+.newyork{
+	fill: yellow;
+}
+
+.michigan{
+	fill: orange;
+}
+
+.line_overall {
+    fill: none;
+    stroke: blue;
+    stroke-width: 3;
+}
+
+.line_sheltered {
+    fill: none;
+    stroke: red;
+    stroke-width: 3;
+}
+
+.line_unsheltered {
+    fill: none;
+    stroke: green;
+    stroke-width: 3;
+}
+
+.line_newyork {
+    fill: none;
+    stroke: yellow;
+    stroke-width: 3;
+}
+
+.line_michigan {
+    fill: none;
+    stroke: orange;
+    stroke-width: 3;
+}
