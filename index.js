@@ -78,11 +78,11 @@ function createPlot(data){
     };
   }, {min: Infinity, max: -Infinity});
 
-  const toNum = d => parseInt(String(d["Overall Homeless"]).replace(',','')) 
+  const toNum = d => parseInt(d.replace(',','')) 
 
 
   const yDomain = data.reduce((acc, row) => {
-    const val = toNum(row);
+    const val = toNum(row["Overall Homeless"]);
     return {
       min: Math.min(isFinite(val) ? val : Infinity, acc.min),
       max: Math.max(isFinite(val) ? val : -Infinity, acc.max)
@@ -111,22 +111,52 @@ function createPlot(data){
   
 
 
-  const circles = g.selectAll('.circ')
+  const overall_circles = g.selectAll('.circ overall')
     .data(data.filter(function(d){
-      return isFinite(toNum(d)) && isTotalRow(d);
+      return isFinite(toNum(d["Overall Homeless"])) && isTotalRow(d);
       }));
 
-  circles.enter()
+  overall_circles.enter()
     .append('circle')
-    .attr('class', 'circ')
+    .transition()
+    .duration(1000)   
+    .delay( d => (d["Year"]-2007)*100)
+    .attr('class', 'circ overall')
     .attr('r', 5)
     .attr('cx', d => xScale(d["Year"]))
-    .attr('cy', d => {
-      const val = yScale(parseInt(String(d["Overall Homeless"]).replace(',','')));
-      
-      return val
-    })
-    
+    .attr('cy', d => yScale(toNum(d["Overall Homeless"])));
+     
+
+  const sheltered_circles = g.selectAll('.circ sheltered')
+    .data(data.filter(function(d){
+      return isFinite(toNum(d["Sheltered Total Homeless"])) && isTotalRow(d);
+      }));
+
+  sheltered_circles.enter()
+    .append('circle')
+    .transition()
+    .duration(500)   
+    .delay(d => 2000+(d["Year"]-2007)*100)
+    .attr('class', 'circ sheltered')
+    .attr('r', 5)
+    .attr('cx', d => xScale(d["Year"]))
+    .attr('cy', d => yScale(toNum(d["Sheltered Total Homeless"])));
+   
+  const unsheltered_circles = g.selectAll('.circ unsheltered')
+    .data(data.filter(function(d){
+      return isFinite(toNum(d["Unsheltered Homeless"])) && isTotalRow(d);
+      }));
+
+  unsheltered_circles.enter()
+    .append('circle')
+    .transition()
+    .duration(500)   
+    .delay(d => 2000+(d["Year"]-2007)*100)
+    .attr('class', 'circ unsheltered')
+    .attr('r', 5)
+    .attr('cx', d => xScale(d["Year"]))
+    .attr('cy', d => yScale(toNum(d["Unsheltered Homeless"]))); 
+
    
   //Axis
   g.append('g')
