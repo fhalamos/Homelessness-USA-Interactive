@@ -64,8 +64,8 @@ function createPlot(data){
 
   //Declare dimensions of plotting area
   const height = 600;
-  const width = 800;
-  const margin = {top: 80, left: 100, right: 70, bottom: 50};
+  const width = 1000;
+  const margin = {top: 80, left: 100, right: 300, bottom: 50};
 
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.bottom - margin.top;
@@ -135,7 +135,7 @@ function createPlot(data){
   sheltered_circles.enter()
     .append('circle')
     .transition()
-    .duration(500)   
+    .duration(2000)   
     .delay(d => 2000+(d["Year"]-2007)*100)
     .attr('class', 'circ sheltered')
     .attr('r', 5)
@@ -150,7 +150,7 @@ function createPlot(data){
   unsheltered_circles.enter()
     .append('circle')
     .transition()
-    .duration(500)   
+    .duration(2000)   
     .delay(d => 2000+(d["Year"]-2007)*100)
     .attr('class', 'circ unsheltered')
     .attr('r', 5)
@@ -230,4 +230,70 @@ function createPlot(data){
     .attr('font-family', 'georgia')
     .attr('font-style', 'italic')
     .text(d => d.label);
+
+
+  //Legend
+  g.append("rect")
+    .transition()
+    .duration(2000)   
+    .delay(1000)
+    .attr('class', 'rect overall')
+    .attr('height',20)
+    .attr('width',20)
+    .attr('x', plotWidth+margin.right/2-25)
+    .attr('y', 25)
+
+  g.append("text")
+    .transition()
+    .duration(2000)   
+    .delay(1000)
+    .attr('class', 'text overall')
+    .attr('height',20)
+    .attr('width',20)
+    .attr('x', plotWidth+margin.right/2)
+    .attr('y', 40)
+    .text('Overall homeless')
+
+  g.append("rect")
+    .transition()
+    .duration(2000)   
+    .delay(3000)
+    .attr('class', 'rect sheltered')
+    .attr('height',20)
+    .attr('width',20)
+    .attr('x', plotWidth+margin.right/2-25)
+    .attr('y', 55)
+
+  g.append("text")
+    .transition()
+    .duration(2000)   
+    .delay(3000)
+    .attr('class', 'text sheltered')
+    .attr('height',20)
+    .attr('width',20)
+    .attr('x', plotWidth+margin.right/2)
+    .attr('y', 70)
+    .text('Sheltered homeless')
+
+  g.append("rect")
+    .transition()
+    .duration(2000)   
+    .delay(3000)
+    .attr('class', 'rect unsheltered')
+    .attr('height',20)
+    .attr('width',20)
+    .attr('x', plotWidth+margin.right/2-25)
+    .attr('y', 85)
+
+  g.append("text")
+    .transition()
+    .duration(2000)   
+    .delay(3000)
+    .attr('class', 'text unsheltered')
+    .attr('height',20)
+    .attr('width',20)
+    .attr('x', plotWidth+margin.right/2)
+    .attr('y', 100)
+    .text('Unsheltered homeless')
+
 };
