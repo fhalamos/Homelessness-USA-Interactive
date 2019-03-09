@@ -1,13 +1,33 @@
+const toNum = d => parseInt(d.replace(',',''));
+
+function calculateAverage(data,column){
+  var sum=0;
+  for (var row = 0; row < data.length; row++) {
+    sum+=data[row][column];
+  }
+  return sum/data.length;
+}
+
 //Based on https://stackoverflow.com/questions/38064029/d3-modifying-column-names
-function removeYearFromColumnNames(d){
-    Object.keys(d).forEach(function(origProp) {
-        var noDot = origProp.split(",");
-        if (noDot.length == 2) {
-          d[noDot[0]] = d[origProp];
-          delete d[origProp];
+function formatCSV(d){
+    Object.keys(d).forEach(function(key) {
+
+        //First parse all numbers
+        if(key!="State"){
+          d[key] = toNum(d[key]);
+        }       
+
+        //Next change all keys (take out part after the comma)
+        var splittedKey = key.split(",");
+        if (splittedKey.length == 2) {
+          d[splittedKey[0]] = d[key];
+          delete d[key];
         }
+
+
      });
-     return d;
+
+    return d;
 };
 
 
@@ -29,14 +49,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   //Load all data from different files
   files.forEach(function(url) {
-      promises.push(d3.csv(url, removeYearFromColumnNames));
+      promises.push(d3.csv(url, formatCSV));
   });
 
   Promise.all(promises).then(function(values) {
     
-
+    //Prepare data
     for (var i = 0; i< values.length; i++) {
-     
       values[i].forEach(function(d) {
         d["Year"] = getYear(i);
         data.push(d);
@@ -45,13 +64,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     console.log(data);
     createPlot(data);
+
   });
 
 });
 
-
-
-//Indicates if row is a row of totals per year (not a particular state)
 function selectRow(d,state){
   if(d['State']===state){
     return true;
@@ -60,16 +77,16 @@ function selectRow(d,state){
 }
 
 
-
 function createPlot(data){
 
   //Declare dimensions of plotting area
   const height = 600;
-  const width = 1000;
-  const margin = {top: 80, left: 100, right: 300, bottom: 50};
+  const width = 2000;
+  const margin = {top: 80, left: 100, right: 400, bottom: 50};
 
-  const plotWidth = width - margin.left - margin.right;
+  const plotWidth = width/2 - margin.left - margin.right;
   const plotHeight = height - margin.bottom - margin.top;
+  let selectedLines = []
 
   //Calculate domains of x and y variables. We will use this for scalling
   const xDomain = data.reduce((acc, row) => {
@@ -79,11 +96,9 @@ function createPlot(data){
     };
   }, {min: Infinity, max: -Infinity});
 
-  const toNum = d => parseInt(d.replace(',',''));
-
 
   const yDomain = data.reduce((acc, row) => {
-    const val = toNum(row["Overall Homeless"]);
+    const val = row["Overall Homeless"];
     return {
       min: Math.min(isFinite(val) ? val : Infinity, acc.min),
       max: Math.max(isFinite(val) ? val : -Infinity, acc.max)
@@ -152,6 +167,10 @@ function createPlot(data){
     .attr('font-family', 'sans-serif')
     .text(d => d.label);
 
+  d3.select(".title").on("click",function () {
+    update_graph();
+  });
+
 
   //Subtitle
   const subtitle = svg.selectAll('.subtitle')
@@ -185,261 +204,113 @@ function createPlot(data){
 
 
 
+  columns = ["Overall Homeless", "Unsheltered Homeless","Overall Homeless", "Unsheltered Homeless"]
+  var states = ["Total","CA","Total","CA"];
+
+
+  var iterator =0
+
+  g.append("text")
+    .attr('class', 'text')
+    .attr('height',20)
+    .attr('width',20)
+    .attr('x', plotWidth+margin.right/2)
+    .attr('y', plotHeight/2)
+    .text('Click here to Start!')
+    .on("click", function() {
+     
+      updateLine(columns[iterator],states[iterator]);
+      iterator = iterator+1;
+
+    });
 
 
 
+  function updateLine(column, state){
+
+    console.log(column);
+    console.log(state);
+
+    var delay1=2000;
+    var duration1=2000;
+
+    var overall_line = d3.line()
+        .x(function(d) { return xScale(d["Year"]); }) 
+        .y(function(d) { return yScale(d[column]); })
+        .curve(d3.curveMonotoneX); // apply smoothing to the line
+
+    
+    var selected_data= data.filter(function(d){
+            return isFinite(d[column]) && selectRow(d,state);
+          })
 
 
+    var line = g.selectAll(".line_overall")
+      .data(selected_data, function (d) { return d["State"] })// ??
+    
 
-
-  //Lines
-
-  //Based on https://bl.ocks.org/gordlea/27370d1eea8464b04538e6d8ced39e89#index.html
-  
-  //OVERALL HOMELESS
-  //d3's line generator
-
-
-  var delay1=2000;
-  var duration1=2000;
-
-  var overall_line = d3.line()
-      .x(function(d) { return xScale(d["Year"]); }) 
-      .y(function(d) { return yScale(toNum(d["Overall Homeless"])); })
-      .curve(d3.curveMonotoneX); // apply smoothing to the line
-
-  //Append the path, bind the data, and call the line generator 
-  g.append("path")
-      .datum(
-        data.filter(function(d){
-          return isFinite(toNum(d["Overall Homeless"])) && selectRow(d,'Total');
-        })
-      ) // 10. Binds data to the line 
+    line.enter()
+      .append("path")
+      .attr("class", "line_overall")
+      .attr("d", overall_line(selected_data))
       .transition()
-      .attr("opacity", 1)
+      .duration(duration1)
+      .attr("opacity", 0.2);
+
+    line.exit()
+    .transition()
+    .duration(1000)
+    .attr("opacity", 0)
+    .remove();
+
+
+    //Legend
+    var rect_legend = g.selectAll(".rect")
+      .data(selected_data, function (d) { return d["State"] });// ??
+    
+
+    rect_legend
+      .enter()
+      .append("rect")
+      .transition()
+      .duration(duration1)
+      .attr('class', 'rect')
+      .attr('height',20)
+      .attr('width',20)
+      .attr('x', plotWidth+margin.right/2-25)
+      .attr('y', yScale(calculateAverage(selected_data,column)))
+      .attr("opacity", 0.2);
+      
+    rect_legend.exit()
+    .transition()
+    .duration(1000)
+    .attr("opacity", 0)
+    .remove();
+
+    var text_legend = g.selectAll(".text_legend")
+      .data(selected_data, function (d) { return d["State"] });
+    
+
+    text_legend
+      .enter()
+      .append("text")
+      .transition()
       .duration(duration1)   
-      .delay(delay1)
-      .attr("class", "line_overall") // Assign a class for styling 
-      .attr("d", overall_line) // Calls the line generator
-      .transition()
-      .duration(3000)
-      //.remove();
+      .attr('class', 'text_legend')
+      .attr('height',20)
+      .attr('width',20)
+      .attr('x', plotWidth+margin.right/2)
+      .attr('y', yScale(calculateAverage(selected_data,column)))
+      .text(column+" in "+state)
       .attr("opacity", 0.2);
 
-  //Legend
-  g.append("rect")
+    text_legend.exit()
     .transition()
-    .duration(duration1)   
-    .delay(delay1)
-    .attr('class', 'rect overall')
-    .attr('height',20)
-    .attr('width',20)
-    .attr('x', plotWidth+margin.right/2-25)
-    .attr('y', 25)
+    .duration(1000)
+    .attr("opacity", 0)
+    .remove();
 
-  g.append("text")
-    .transition()
-    .duration(duration1)   
-    .delay(delay1)
-    .attr('class', 'text overall')
-    .attr('height',20)
-    .attr('width',20)
-    .attr('x', plotWidth+margin.right/2)
-    .attr('y', 40)
-    .text('Overall homeless')
-
-
-
-  var delay2=4000;
-  var duration2=2000;
-
-  //Sheltered homeless line
-  
-  var sheltered_line = d3.line()
-      .x(function(d) { return xScale(d["Year"]); }) 
-      .y(function(d) { return yScale(toNum(d["Sheltered Total Homeless"])); })
-      .curve(d3.curveMonotoneX); // apply smoothing to the line
-
-  g.append("path")
-      .datum(
-        data.filter(function(d){
-          return isFinite(toNum(d["Sheltered Total Homeless"])) && selectRow(d,'Total');
-        })
-      ) 
-      .transition()
-      .attr("opacity", 1)
-      .duration(duration2)   
-      .delay(delay2)
-      .attr("class", "line_sheltered") 
-      .attr("d", sheltered_line)
-      .transition()
-      .attr("opacity", 0.2);
-      //.remove();
-
-  g.append("rect")
-    .transition()
-    .duration(duration2)   
-    .delay(delay2)
-    .attr('class', 'rect sheltered')
-    .attr('height',20)
-    .attr('width',20)
-    .attr('x', plotWidth+margin.right/2-25)
-    .attr('y', 55)
-
-  g.append("text")
-    .transition()
-    .duration(duration2)   
-    .delay(delay2)
-    .attr('class', 'text sheltered')
-    .attr('height',20)
-    .attr('width',20)
-    .attr('x', plotWidth+margin.right/2)
-    .attr('y', 70)
-    .text('Sheltered homeless')
-
-
-  //Unsheltered homeless line
-  var unsheltered_line = d3.line()
-      .x(function(d) { return xScale(d["Year"]); }) 
-      .y(function(d) { return yScale(toNum(d["Unsheltered Homeless"])); })
-      .curve(d3.curveMonotoneX); // apply smoothing to the line
-
-  g.append("path")
-      .datum(
-        data.filter(function(d){
-          return isFinite(toNum(d["Unsheltered Homeless"])) && selectRow(d,'Total');
-        })
-      ) // 10. Binds data to the line 
-      .transition()
-      .attr("opacity", 1)
-      .duration(duration2)   
-      .delay(delay2)
-      .attr("class", "line_unsheltered") 
-      .attr("d", unsheltered_line)
-      .transition()
-      //.duration(3000)
-      .attr("opacity", 0.2);
-//      .remove();
-
-
-
-  g.append("rect")
-    .transition()
-    .duration(duration2)   
-    .delay(delay2)
-    .attr('class', 'rect unsheltered')
-    .attr('height',20)
-    .attr('width',20)
-    .attr('x', plotWidth+margin.right/2-25)
-    .attr('y', 85)
-
-  g.append("text")
-    .transition()
-    .duration(duration2)   
-    .delay(delay2)
-    .attr('class', 'text unsheltered')
-    .attr('height',20)
-    .attr('width',20)
-    .attr('x', plotWidth+margin.right/2)
-    .attr('y', 100)
-    .text('Unsheltered homeless')
-
-
-
-
-
-
-
-  var delay3=6000;
-  var duration3=2000;
-
-
-  //Homeless newyork
-  var newyork_line = d3.line()
-      .x(function(d) { return xScale(d["Year"]); }) 
-      .y(function(d) { return yScale(toNum(d["Overall Homeless"])); })
-      .curve(d3.curveMonotoneX); // apply smoothing to the line
-
-  g.append("path")
-      .datum(
-        data.filter(function(d){
-          return isFinite(toNum(d["Overall Homeless"])) && selectRow(d,'NY');
-        })
-      ) // 10. Binds data to the line 
-      .transition()
-      .attr("opacity", 1)
-      .duration(duration3)   
-      .delay(delay3)
-      .attr("class", "line_newyork") 
-      .attr("d", newyork_line)
-      .transition()
-      //.duration(3000)
-      .attr("opacity", 0.2);
- 
-  g.append("rect")
-    .transition()
-    .duration(duration3)   
-    .delay(delay3)
-    .attr('class', 'rect newyork')
-    .attr('height',20)
-    .attr('width',20)
-    .attr('x', plotWidth+margin.right/2-25)
-    .attr('y', 115)
-
-  g.append("text")
-    .transition()
-    .duration(duration3)   
-    .delay(delay3)
-    .attr('class', 'text newyork')
-    .attr('height',20)
-    .attr('width',20)
-    .attr('x', plotWidth+margin.right/2)
-    .attr('y', 130)
-    .text('Homeless in NY')
-
-
-  //Homeless michigan
-  var michigan_line = d3.line()
-      .x(function(d) { return xScale(d["Year"]); }) 
-      .y(function(d) { return yScale(toNum(d["Overall Homeless"])); })
-      .curve(d3.curveMonotoneX); // apply smoothing to the line
-
-  g.append("path")
-      .datum(
-        data.filter(function(d){
-          return isFinite(toNum(d["Overall Homeless"])) && selectRow(d,'TX');
-        })
-      ) // 10. Binds data to the line 
-      .transition()
-      .attr("opacity", 1)
-      .duration(duration3)   
-      .delay(delay3)
-      .attr("class", "line_michigan") 
-      .attr("d", michigan_line)
-      .transition()
-      //.duration(3000)
-      .attr("opacity", 0.2);
-
-  g.append("rect")
-    .transition()
-    .duration(duration3)   
-    .delay(delay3)
-    .attr('class', 'rect michigan')
-    .attr('height',20)
-    .attr('width',20)
-    .attr('x', plotWidth+margin.right/2-25)
-    .attr('y', 145)
-
-  g.append("text")
-    .transition()
-    .duration(duration3)   
-    .delay(delay3)
-    .attr('class', 'text michigan')
-    .attr('height',20)
-    .attr('width',20)
-    .attr('x', plotWidth+margin.right/2)
-    .attr('y', 160)
-    .text('Homeless in MI')
+  }
 
 
 };
