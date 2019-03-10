@@ -74,11 +74,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-function selectRow(d,state){
-  if(d['State']===state){
-    return true;
+function selectRows(d,column,value,equalComparison=true){
+  
+  if(equalComparison){
+    if(d[column]===value){
+      return true;
+    }
+    return false;
   }
-  return false;
+  else{
+    if(d[column]!==value){
+      return true;
+    }
+    return false; 
+  }
 }
 
 
@@ -87,7 +96,7 @@ function selectRow(d,state){
 
 
 
-function calculateYDomain(data,column){
+function calculateDomain(data,column){
 
   return data.reduce((acc, row) => {
     const val = row[column];
@@ -120,7 +129,7 @@ function createPlot(data,geodata){
   }, {min: Infinity, max: -Infinity});
 
 
-  const yDomain = calculateYDomain(data,"Overall Homeless");
+  const yDomain = calculateDomain(data,"Overall Homeless");
   console.log(yDomain);
 
   //Scale for y axis: # of homeless people
@@ -218,28 +227,7 @@ function createPlot(data,geodata){
     .text(d => d.label);
 
 
-
-  var columns = ["Overall Homeless", "Unsheltered Homeless","Overall Homeless", "Unsheltered Homeless"]
-  var states = ["Total","CA","Total","CA"];
-
-
-  var iterator =0
-
-  g.append("text")
-    .attr('class', 'text')
-    .attr('height',20)
-    .attr('width',20)
-    .attr('x', plotWidth+margin.right/2)
-    .attr('y', plotHeight/2)
-    .text('Click here to Start!')
-    .on("click", function() {
-     
-      updateLine(columns[iterator],states[iterator]);
-      iterator = iterator+1;
-
-    });
-
-
+  createMap();
 
   function updateLine(column, state){
 
@@ -255,7 +243,7 @@ function createPlot(data,geodata){
 
     
     var selected_data= data.filter(function(d){
-            return isFinite(d[column]) && selectRow(d,state);
+            return isFinite(d[column]) && selectRows(d,"State",state);
           })
 
 
@@ -326,11 +314,54 @@ function createPlot(data,geodata){
 
   }
 
-  createMap(geodata);
 
-  function createMap(data){
-    console.log(data);
-    var geojson = data;
+  //Used https://github.com/mcnuttandrew/capp-30239/tree/master/week-8-map
+  //Used https://d3indepth.com/geographic/
+  function createMap(){
+
+
+    // we're going to be coloring our cells based on their homeless population so we should compute the
+    // population domain
+
+    var states_data= data.filter(function(d){
+            return isFinite(d["Overall Homeless"]) && selectRows(d,"State","Total",false);
+          })
+
+    console.log(states_data);
+
+
+    const homelessDomain = calculateDomain(states_data,"Overall Homeless");//computeDomain(statePops, 'pop');
+   
+
+
+    // the data that we will be iterating over will be the geojson array of states, so we want to be
+    // able to access the populations of all of the states. to do so we flip it to a object representation
+    
+    // const stateNameToPop = statePops.reduce((acc, row) => {
+    //   acc[row.state] = row.pop;
+    //   return acc;
+    // }, {});
+
+
+//    const popScale = d3.scaleLinear().domain([homelessDomain.min, homelessDomain.max]).range([0, 1]);
+//    const colorScale2 = d => d3.interpolateInferno(Math.sqrt(popScale(d)));
+    
+    var colorScale = d3.scaleLinear()
+    .domain([homelessDomain.min, homelessDomain.max])
+    .range(["#43bb38", "#e41a1c"]);
+
+
+    var data_2018= data.filter(function(d){
+            return isFinite(d["Year"]) && selectRows(d,"Year",2018);
+          })
+
+    //Create map from state to number of homeless in 2018, used for coloring
+    const state_to_pop = data_2018.reduce((acc, row) => {
+      acc[row.State] = row["Overall Homeless"];
+      return acc;
+    }, {});
+
+
 
     var projection = d3.geoAlbers();//geoEquirectangular();
      //.scale(400)
@@ -344,21 +375,28 @@ function createPlot(data,geodata){
             .attr("width", 1000)
             .attr("height", 600)
 
+    
 
     const g_map =  svg_map.append('g')
       .attr('transform',`translate(10,10)`);//${margin.left},${margin.top})`);
 
     g_map.selectAll(".state")
-            .data(data.features)//geodata.features)
+            .data(geodata.features)//geodata.features)
             .enter()
             .append('path')
             .attr("d", geoGenerator)
-            .attr("id", function(d,i) { return states_to_abb[data.features[i].properties.State]; })
+            //.attr("id", function(d) { return states_to_abb[d.properties.State]; })
 
             .attr('stroke', 'black')
             .attr('fill', "lightgrey")
-            .on("click", function(d,i) {
-              updateLine("Overall Homeless",states_to_abb[data.features[i].properties.State]);
+            .attr('fill', function(d){
+              var a = colorScale(state_to_pop[states_to_abb[d.properties.State]]);
+
+              return a;})
+            .on("click", function(d) {
+              console.log(d);
+
+              updateLine("Overall Homeless",states_to_abb[d.properties.State]);
             });
   }
 };
