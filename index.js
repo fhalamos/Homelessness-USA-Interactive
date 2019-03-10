@@ -1,3 +1,5 @@
+
+
 const toNum = d => parseInt(d.replace(',',''));
 
 function calculateAverage(data,column){
@@ -23,10 +25,7 @@ function formatCSV(d){
           d[splittedKey[0]] = d[key];
           delete d[key];
         }
-
-
      });
-
     return d;
 };
 
@@ -34,7 +33,6 @@ function formatCSV(d){
 function getYear(i){
   return i+2007;  
 }
-
 
 //Wait until the page is loaded before we start to do thigs
 document.addEventListener('DOMContentLoaded', () => {
@@ -48,26 +46,33 @@ document.addEventListener('DOMContentLoaded', () => {
   var data =[];
 
   //Load all data from different files
-  files.forEach(function(url) {
-      promises.push(d3.csv(url, formatCSV));
+  files.forEach(function(file_address) {
+      promises.push(d3.csv(file_address, formatCSV));
   });
+
+  //Load states geojson data
+  promises.push(d3.json("./Data/states.json"));
 
   Promise.all(promises).then(function(values) {
     
+    //console.log(values);
     //Prepare data
-    for (var i = 0; i< values.length; i++) {
+    for (var i = 0; i< values.length-1; i++) {
       values[i].forEach(function(d) {
         d["Year"] = getYear(i);
         data.push(d);
       });
     }
 
-    console.log(data);
-    createPlot(data);
-
+    var geodata = values[values.length-1];
+    createPlot(data,geodata);
+    //createMap();
   });
 
 });
+
+
+
 
 function selectRow(d,state){
   if(d['State']===state){
@@ -77,7 +82,25 @@ function selectRow(d,state){
 }
 
 
-function createPlot(data){
+
+
+
+
+
+function calculateYDomain(data,column){
+
+  return data.reduce((acc, row) => {
+    const val = row[column];
+    return {
+      min: Math.min(isFinite(val) ? val : Infinity, acc.min),
+      max: Math.max(isFinite(val) ? val : -Infinity, acc.max)
+    };
+  }, {min: Infinity, max: -Infinity});
+
+}
+
+
+function createPlot(data,geodata){
 
   //Declare dimensions of plotting area
   const height = 600;
@@ -97,32 +120,26 @@ function createPlot(data){
   }, {min: Infinity, max: -Infinity});
 
 
-  const yDomain = data.reduce((acc, row) => {
-    const val = row["Overall Homeless"];
-    return {
-      min: Math.min(isFinite(val) ? val : Infinity, acc.min),
-      max: Math.max(isFinite(val) ? val : -Infinity, acc.max)
-    };
-  }, {min: Infinity, max: -Infinity});
-  
+  const yDomain = calculateYDomain(data,"Overall Homeless");
+  console.log(yDomain);
 
   //Scale for y axis: # of homeless people
   const yScale = d3.scaleLinear()
-    .domain([0, yDomain.max*1.05])//Multiply by 1.05 so that we can see a tick bigger than the max value
-    .range([plotHeight,0]); // We want it to go from top to down
+    .domain([0, yDomain.max*1.01])
+    .range([plotHeight,0]); 
 
   //Scale for x acis: # of homeless programs
   const xScale = d3.scaleLinear()
-    .domain([xDomain.min-0.1, xDomain.max+0.1])
-    .range([0,plotWidth]); // We want it to go from right to left
-    
+    .domain([xDomain.min, xDomain.max])
+    .range([0,plotWidth]); 
+
   // We create the svg, and set height and width 
-  const svg = d3.select('.main')
+  const svg_plot = d3.select('.plot')
     .append('svg')
     .attr('width', width)
     .attr('height', height)
   
-  const g =  svg.append('g')
+  const g =  svg_plot.append('g')
     .attr('transform',`translate(${margin.left},${margin.top})`);
 
   //Axis
@@ -151,7 +168,7 @@ function createPlot(data){
 
   
   //Title
-  const title = svg.selectAll('.title')
+  const title = svg_plot.selectAll('.title')
                     .data([{x: margin.left, 
                             y: margin.top*0.3, 
                             label: 'Evolution of number of homeless in time'}]);
@@ -167,13 +184,11 @@ function createPlot(data){
     .attr('font-family', 'sans-serif')
     .text(d => d.label);
 
-  d3.select(".title").on("click",function () {
-    update_graph();
-  });
+  
 
 
   //Subtitle
-  const subtitle = svg.selectAll('.subtitle')
+  const subtitle = svg_plot.selectAll('.subtitle')
                       .data([{x: margin.left, y: margin.top*0.5,
                               label: 'Overall homeless decreases in time, but some subpopulations of homeless more than others'}]); 
   subtitle.enter()
@@ -188,7 +203,7 @@ function createPlot(data){
 
 
   //Caption
-  const caption = svg.selectAll('.caption')
+  const caption = svg_plot.selectAll('.caption')
                       .data([{x: plotWidth-300, y: height-3,
                               label: 'Source: U.S. Department of Housing and Urban Development (HUD)'}]); 
   caption.enter()
@@ -204,7 +219,7 @@ function createPlot(data){
 
 
 
-  columns = ["Overall Homeless", "Unsheltered Homeless","Overall Homeless", "Unsheltered Homeless"]
+  var columns = ["Overall Homeless", "Unsheltered Homeless","Overall Homeless", "Unsheltered Homeless"]
   var states = ["Total","CA","Total","CA"];
 
 
@@ -228,11 +243,10 @@ function createPlot(data){
 
   function updateLine(column, state){
 
-    console.log(column);
-    console.log(state);
-
     var delay1=2000;
     var duration1=2000;
+
+
 
     var overall_line = d3.line()
         .x(function(d) { return xScale(d["Year"]); }) 
@@ -312,5 +326,105 @@ function createPlot(data){
 
   }
 
+  createMap(geodata);
 
+  function createMap(data){
+    console.log(data);
+    var geojson = data;
+
+    var projection = d3.geoAlbers();//geoEquirectangular();
+     //.scale(400)
+     //.translate([50, 400]);
+
+    var geoGenerator = d3.geoPath(projection);
+
+
+    var svg_map = d3.select(".map")
+            .append("svg")
+            .attr("width", 1000)
+            .attr("height", 600)
+
+
+    const g_map =  svg_map.append('g')
+      .attr('transform',`translate(10,10)`);//${margin.left},${margin.top})`);
+
+    g_map.selectAll(".state")
+            .data(data.features)//geodata.features)
+            .enter()
+            .append('path')
+            .attr("d", geoGenerator)
+            .attr("id", function(d,i) { return states_to_abb[data.features[i].properties.State]; })
+
+            .attr('stroke', 'black')
+            .attr('fill', "lightgrey")
+            .on("click", function(d,i) {
+              updateLine("Overall Homeless",states_to_abb[data.features[i].properties.State]);
+            });
+  }
 };
+
+
+
+
+var states_to_abb  =
+  {
+    'Alabama': 'AL',
+    'Alaska': 'AK',
+    'American Samoa': 'AS',
+    'Arizona': 'AZ',
+    'Arkansas': 'AR',
+    'California': 'CA',
+    'Colorado': 'CO',
+    'Connecticut': 'CT',
+    'Delaware': 'DE',
+    'District Of Columbia': 'DC',
+    'Federated States Of Micronesia': 'FM',
+    'Florida': 'FL',
+    'Georgia': 'GA',
+    'Guam': 'GU',
+    'Hawaii': 'HI',
+    'Idaho': 'ID',
+    'Illinois': 'IL',
+    'Indiana': 'IN',
+    'Iowa': 'IA',
+    'Kansas': 'KS',
+    'Kentucky': 'KY',
+    'Louisiana': 'LA',
+    'Maine': 'ME',
+    'Marshall Islands': 'MH',
+    'Maryland': 'MD',
+    'Massachusetts': 'MA',
+    'Michigan': 'MI',
+    'Minnesota': 'MN',
+    'Mississippi': 'MS',
+    'Missouri': 'MO',
+    'Montana': 'MT',
+    'Nebraska': 'NE',
+    'Nevada': 'NV',
+    'New Hampshire': 'NH',
+    'New Jersey': 'NJ',
+    'New Mexico': 'NM',
+    'New York': 'NY',
+    'North Carolina': 'NC',
+    'North Dakota': 'ND',
+    'Northern Mariana Islands': 'MP',
+    'Ohio': 'OH',
+    'Oklahoma': 'OK',
+    'Oregon': 'OR',
+    'Palau': 'PW',
+    'Pennsylvania': 'PA',
+    'Puerto Rico': 'PR',
+    'Rhode Island': 'RI',
+    'South Carolina': 'SC',
+    'South Dakota': 'SD',
+    'Tennessee': 'TN',
+    'Texas': 'TX',
+    'Utah': 'UT',
+    'Vermont': 'VT',
+    'Virgin Islands': 'VI',
+    'Virginia': 'VA',
+    'Washington': 'WA',
+    'West Virginia': 'WV',
+    'Wisconsin': 'WI',
+    'Wyoming': 'WY'
+  }

@@ -1,3 +1,8 @@
+#content .map path {
+  fill: #ddd;
+  stroke: #aaa;
+}
+
 .overall{
 	fill:blue;
 }
