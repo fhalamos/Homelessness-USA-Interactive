@@ -7,21 +7,7 @@
 	fill:blue;
 }
 
-.sheltered{
-	fill: red;
-}
 
-.unsheltered{
-	fill: green;
-}
-
-.newyork{
-	fill: yellow;
-}
-
-.michigan{
-	fill: orange;
-}
 
 .line_overall {
     fill: none;
@@ -29,26 +15,18 @@
     stroke-width: 3;
 }
 
-.line_sheltered {
-    fill: none;
-    stroke: red;
-    stroke-width: 3;
+div.map {
+  position: absolute;
+  top: 100px; 
+  width: 200px;
+  height: 100px;
 }
 
-.line_unsheltered {
-    fill: none;
-    stroke: green;
-    stroke-width: 3;
+div.plot {
+  position: absolute;
+  top: 100px; 
+  left: 700px;
+  width: 200px;
+  height: 100px;
 }
 
-.line_newyork {
-    fill: none;
-    stroke: yellow;
-    stroke-width: 3;
-}
-
-.line_michigan {
-    fill: none;
-    stroke: orange;
-    stroke-width: 3;
-}

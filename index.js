@@ -65,8 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     var geodata = values[values.length-1];
-    createPlot(data,geodata);
-    //createMap();
+    renderPage(data,geodata);
   });
 
 });
@@ -91,11 +90,6 @@ function selectRows(d,column,value,equalComparison=true){
 }
 
 
-
-
-
-
-
 function calculateDomain(data,column){
 
   return data.reduce((acc, row) => {
@@ -109,7 +103,7 @@ function calculateDomain(data,column){
 }
 
 
-function createPlot(data,geodata){
+function renderPage(data,geodata){
 
   //Declare dimensions of plotting area
   const height = 600;
@@ -118,7 +112,6 @@ function createPlot(data,geodata){
 
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.bottom - margin.top;
-  let selectedLines = []
 
   //Calculate domains of x and y variables. We will use this for scalling
   const xDomain = data.reduce((acc, row) => {
@@ -144,91 +137,60 @@ function createPlot(data,geodata){
     .attr('transform',`translate(${margin.left},${margin.top})`);
 
 
-  g.append('g')
-    .call(d3.axisBottom(xScale))
-    .attr('transform', `translate(0,${plotHeight})`);
-
-
-  //Axis labels
-  g.append("text")
-    .attr("x", plotWidth/2)
-    .attr("y", plotHeight+margin.bottom*2/3 )
-    .style("text-anchor", "middle")
-    .attr('font-size', 14)
-    .text("Year");  
-
-  g.append("text")
-        .attr("transform", "rotate(-90)")
-        .attr("x", -plotHeight/2)
-        .attr("y", -margin.left*2/3)
-        .attr('font-size', 14)
-        .style("text-anchor", "middle")
-        .text("Number of homeless");
-
-  
-  //Title
-  const title = svg_plot.selectAll('.title')
-                    .data([{x: margin.left, 
-                            y: margin.top*0.3, 
-                            label: 'Evolution of number of homeless in time'}]);
- 
-  title.enter()
-    .append('text')
-    .attr('class', 'title')
-    .attr('x', d => d.x) //Not using scaling here
-    .attr('y', d => d.y)
-    .attr('text-anchor', 'left')
-    .attr('font-size', 20)
-    .attr('font-weight', 'bold')
-    .attr('font-family', 'sans-serif')
-    .text(d => d.label);
-
-  
-
-
-  //Subtitle
-  const subtitle = svg_plot.selectAll('.subtitle')
-                      .data([{x: margin.left, y: margin.top*0.5,
-                              label: 'Overall homeless decreases in time, but some subpopulations of homeless more than others'}]); 
-  subtitle.enter()
-    .append('text')
-    .attr('class', 'subtitle')
-    .attr('x', d => d.x)
-    .attr('y', d => d.y)
-    .attr('text-anchor', 'left')
-    .attr('font-size', 16)
-    .attr('font-family', 'sans-serif')
-    .text(d => d.label);
-
-
-  //Caption
-  const caption = svg_plot.selectAll('.caption')
-                      .data([{x: plotWidth-300, y: height-3,
-                              label: 'Source: U.S. Department of Housing and Urban Development (HUD)'}]); 
-  caption.enter()
-    .append('text')
-    .attr('class', 'caption')
-    .attr('x', d => d.x)
-    .attr('y', d => d.y)
-    .attr('text-anchor', 'left')
-    .attr('font-size', 14)
-    .attr('font-family', 'georgia')
-    .attr('font-style', 'italic')
-    .text(d => d.label);
-
+  var firstUpdate=true;
 
   createMap();
 
+  
   function updateLine(column, state){
 
-    var delay1=2000;
+    if(firstUpdate){
+      firstUpdate=false;
+
+      //X axis
+      g.append('g')
+        .call(d3.axisBottom(xScale))
+        .attr('transform', `translate(0,${plotHeight})`);
+      
+      //Axis labels
+      g.append("text")
+        .attr("x", plotWidth/2)
+        .attr("y", plotHeight+margin.bottom*2/3 )
+        .style("text-anchor", "middle")
+        .attr('font-size', 14)
+        .text("Year");  
+
+      g.append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("x", -plotHeight/2)
+            .attr("y", -margin.left*2/3)
+            .attr('font-size', 14)
+            .style("text-anchor", "middle")
+            .text("Number of homeless");
+
+      
+
+      //Caption
+      const caption = svg_plot.selectAll('.caption')
+                          .data([{x: plotWidth-300, y: height-3,
+                                  label: 'Source: U.S. Department of Housing and Urban Development (HUD)'}]); 
+      caption.enter()
+        .append('text')
+        .attr('class', 'caption')
+        .attr('x', d => d.x)
+        .attr('y', d => d.y)
+        .attr('text-anchor', 'left')
+        .attr('font-size', 14)
+        .attr('font-family', 'georgia')
+        .attr('font-style', 'italic')
+        .text(d => d.label);
+    }
+    
     var duration1=2000;
 
     var selected_data= data.filter(function(d){
             return isFinite(d[column]) && selectRows(d,"State",state);
           })
-
-
 
 
     var yDomain = calculateDomain(selected_data,"Overall Homeless");
@@ -261,6 +223,28 @@ function createPlot(data,geodata){
       
 
 
+    //Title
+    var title = svg_plot.selectAll('.title')
+          .data(selected_data, function (d) { return d["State"] });
+    
+    title.enter()
+      .append('text')
+      .attr('class', 'title')
+      .attr('x', margin.left) //Not using scaling here
+      .attr('y', margin.top/2)
+      .attr('text-anchor', 'left')
+      .attr('font-size', 20)
+      .attr('font-weight', 'bold')
+      .attr('font-family', 'sans-serif')
+      .text('Homeless in '+ state);
+
+    title.exit()
+      .transition()
+      //.duration(1000)
+      .attr("opacity", 0)
+      .remove();
+      
+
 
     var overall_line = d3.line()
         .x(function(d) { return xScale(d["Year"]); }) 
@@ -283,7 +267,7 @@ function createPlot(data,geodata){
 
     line.exit()
     .transition()
-    .duration(1000)
+    //.duration(1000)
     .attr("opacity", 0)
     .remove();
 
@@ -298,16 +282,15 @@ function createPlot(data,geodata){
       .append("rect")
       .transition()
       .duration(duration1)
-      .attr('class', 'rect')
+      .attr('class', 'rect overall')
       .attr('height',20)
       .attr('width',20)
-      .attr('x', plotWidth+margin.right/2-25)
+      .attr('x', plotWidth+10)
       .attr('y', yScale(calculateAverage(selected_data,column)))
       .attr("opacity", 0.2);
       
     rect_legend.exit()
     .transition()
-    .duration(1000)
     .attr("opacity", 0)
     .remove();
 
@@ -320,20 +303,18 @@ function createPlot(data,geodata){
       .append("text")
       .transition()
       .duration(duration1)   
-      .attr('class', 'text_legend')
+      .attr('class', 'text_legend overall')
       .attr('height',20)
       .attr('width',20)
-      .attr('x', plotWidth+margin.right/2)
-      .attr('y', yScale(calculateAverage(selected_data,column)))
-      .text(column+" in "+state)
+      .attr('x', plotWidth+35)
+      .attr('y', 15+yScale(calculateAverage(selected_data,column)))
+      .text(column)
       .attr("opacity", 0.2);
 
     text_legend.exit()
     .transition()
-    .duration(1000)
     .attr("opacity", 0)
     .remove();
-
   }
 
 
@@ -341,6 +322,9 @@ function createPlot(data,geodata){
   //Used https://d3indepth.com/geographic/
   function createMap(){
 
+
+    var map_width = 1000;
+    var map_height = 500;
 
     // we're going to be coloring our cells based on their homeless population so we should compute the
     // population domain
@@ -354,19 +338,6 @@ function createPlot(data,geodata){
 
     const homelessDomain = calculateDomain(states_data,"Overall Homeless");//computeDomain(statePops, 'pop');
    
-
-
-    // the data that we will be iterating over will be the geojson array of states, so we want to be
-    // able to access the populations of all of the states. to do so we flip it to a object representation
-    
-    // const stateNameToPop = statePops.reduce((acc, row) => {
-    //   acc[row.state] = row.pop;
-    //   return acc;
-    // }, {});
-
-
-//    const popScale = d3.scaleLinear().domain([homelessDomain.min, homelessDomain.max]).range([0, 1]);
-//    const colorScale2 = d => d3.interpolateInferno(Math.sqrt(popScale(d)));
     
     var colorScale = d3.scaleLinear()
     .domain([homelessDomain.min, homelessDomain.max])
@@ -385,22 +356,21 @@ function createPlot(data,geodata){
 
 
 
-    var projection = d3.geoAlbers();//geoEquirectangular();
-     //.scale(400)
-     //.translate([50, 400]);
+    var projection = d3.geoAlbers()//geoEquirectangular();
+     .scale(900)
+     .translate([350, 250]);
 
     var geoGenerator = d3.geoPath(projection);
 
 
     var svg_map = d3.select(".map")
             .append("svg")
-            .attr("width", 1000)
-            .attr("height", 600)
-
-    
+            .attr("width", map_width)
+            .attr("height", map_height)
 
     const g_map =  svg_map.append('g')
       .attr('transform',`translate(10,10)`);//${margin.left},${margin.top})`);
+
 
     g_map.selectAll(".state")
             .data(geodata.features)//geodata.features)
@@ -420,6 +390,21 @@ function createPlot(data,geodata){
 
               updateLine("Overall Homeless",states_to_abb[d.properties.State]);
             });
+
+    //Used https://d3-legend.susielu.com/
+    svg_map.append("g")
+      .attr("class", "legendLinear")
+      .attr('transform',`translate(20,380)`);
+
+
+    var legendLinear = d3.legendColor()
+      .shapeWidth(30)
+      .orient('vertical')
+      .scale(colorScale)
+      .title("Amount of homeless in 2018");
+
+    svg_map.select(".legendLinear")
+      .call(legendLinear);
   }
 };
 
