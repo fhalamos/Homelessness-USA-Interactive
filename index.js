@@ -113,10 +113,10 @@ function createPlot(data,geodata){
 
   //Declare dimensions of plotting area
   const height = 600;
-  const width = 2000;
-  const margin = {top: 80, left: 100, right: 400, bottom: 50};
+  const width = 1000;
+  const margin = {top: 80, left: 100, right: 350, bottom: 50};
 
-  const plotWidth = width/2 - margin.left - margin.right;
+  const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.bottom - margin.top;
   let selectedLines = []
 
@@ -128,19 +128,11 @@ function createPlot(data,geodata){
     };
   }, {min: Infinity, max: -Infinity});
 
-
-  const yDomain = calculateDomain(data,"Overall Homeless");
-  console.log(yDomain);
-
-  //Scale for y axis: # of homeless people
-  const yScale = d3.scaleLinear()
-    .domain([0, yDomain.max*1.01])
-    .range([plotHeight,0]); 
-
   //Scale for x acis: # of homeless programs
   const xScale = d3.scaleLinear()
     .domain([xDomain.min, xDomain.max])
     .range([0,plotWidth]); 
+
 
   // We create the svg, and set height and width 
   const svg_plot = d3.select('.plot')
@@ -151,13 +143,11 @@ function createPlot(data,geodata){
   const g =  svg_plot.append('g')
     .attr('transform',`translate(${margin.left},${margin.top})`);
 
-  //Axis
+
   g.append('g')
     .call(d3.axisBottom(xScale))
     .attr('transform', `translate(0,${plotHeight})`);
 
-  g.append('g')
-    .call(d3.axisLeft(yScale));
 
   //Axis labels
   g.append("text")
@@ -234,6 +224,42 @@ function createPlot(data,geodata){
     var delay1=2000;
     var duration1=2000;
 
+    var selected_data= data.filter(function(d){
+            return isFinite(d[column]) && selectRows(d,"State",state);
+          })
+
+
+
+
+    var yDomain = calculateDomain(selected_data,"Overall Homeless");
+  
+    //Scale for y axis: # of homeless people
+    const yScale = d3.scaleLinear()
+      .domain([0, yDomain.max*1.01])
+      .range([plotHeight,0]); 
+
+
+   // g.selectAll(".y_axis").remove();
+
+    //Axis
+    var y_axis = g.selectAll(".y_axis")
+      .data(selected_data, function (d) { return d["State"] })// COMO FUNCIONA ESTO ENTNDER
+
+    y_axis.exit()
+    .transition()
+    .duration(0)
+    // .attr("opacity", 0)
+    .remove();
+
+
+    y_axis.enter()
+      .append('g')
+      .attr("class", "y_axis")
+      .transition()
+      .duration(1000)
+      .call(d3.axisLeft(yScale));
+      
+
 
 
     var overall_line = d3.line()
@@ -241,14 +267,10 @@ function createPlot(data,geodata){
         .y(function(d) { return yScale(d[column]); })
         .curve(d3.curveMonotoneX); // apply smoothing to the line
 
-    
-    var selected_data= data.filter(function(d){
-            return isFinite(d[column]) && selectRows(d,"State",state);
-          })
 
 
     var line = g.selectAll(".line_overall")
-      .data(selected_data, function (d) { return d["State"] })// ??
+      .data(selected_data, function (d) { return d["State"] })
     
 
     line.enter()
