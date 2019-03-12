@@ -256,14 +256,25 @@ function renderPage(data,geodata){
     var line = g.selectAll(".line_overall")
       .data(selected_data, function (d) { return d["State"] })
     
-
-    line.enter()
+    //Used http://bl.ocks.org/duopixel/4063326 for animation
+    var path = line.enter()
       .append("path")
       .attr("class", "line_overall")
       .attr("d", overall_line(selected_data))
+      .attr("stroke", "steelblue")
+      .attr("stroke-width", "2")
+      .attr("fill", "none");
+
+    var totalLength = path.node().getTotalLength();
+    console.log(totalLength);
+
+    path
+      .attr("stroke-dasharray", totalLength) // the higer the dasharray, the longer the dashe
+      .attr("stroke-dashoffset", totalLength) //where does the offset begins
       .transition()
-      .duration(duration1)
-      .attr("opacity", 0.2);
+      .duration(duration1*3/2)
+      .ease(d3.easeLinear) // speed at which the path transitions
+      .attr("stroke-dashoffset", 0);
 
     line.exit()
     .transition()
@@ -373,11 +384,11 @@ function renderPage(data,geodata){
 
 
     g_map.selectAll(".state")
-            .data(geodata.features)//geodata.features)
+            .data(geodata.features)
             .enter()
             .append('path')
             .attr("d", geoGenerator)
-            //.attr("id", function(d) { return states_to_abb[d.properties.State]; })
+            .attr("id", function(d) { return states_to_abb[d.properties.State]; })
 
             .attr('stroke', 'black')
             .attr('fill', "lightgrey")
