@@ -7,6 +7,14 @@
 	fill:blue;
 }
 
+.state:hover{
+    /*fill:blue;*/
+}
+
+.state:hover { 
+  stroke: blue;
+  stroke-width: 4;
+}
 
 
 .line_overall {
