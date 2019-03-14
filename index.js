@@ -14,12 +14,12 @@ function calculateAverage(data,column){
 function formatCSV(d){
     Object.keys(d).forEach(function(key) {
 
-        //First parse all numbers
+        //First parse all numbers from strings to int
         if(key!="State"){
           d[key] = toNum(d[key]);
         }       
 
-        //Next change all keys (take out part after the comma)
+        //Next change all keys (take out part after the commas)
         var splittedKey = key.split(",");
         if (splittedKey.length == 2) {
           d[splittedKey[0]] = d[key];
@@ -30,9 +30,7 @@ function formatCSV(d){
 };
 
 
-function getYear(i){
-  return i+2007;  
-}
+
 
 //Wait until the page is loaded before we start to do thigs
 document.addEventListener('DOMContentLoaded', () => {
@@ -59,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
     //Prepare data
     for (var i = 0; i< values.length-1; i++) {
       values[i].forEach(function(d) {
-        d["Year"] = getYear(i);
+        d["Year"] = i+2007;
         data.push(d);
       });
     }
@@ -106,8 +104,8 @@ function calculateDomain(data,column){
 function renderPage(data,geodata){
 
   //Declare dimensions of plotting area
-  const height = 600;
-  const width = 1000;
+  const height = 500;
+  const width = 900;
   const margin = {top: 80, left: 100, right: 350, bottom: 50};
 
   const plotWidth = width - margin.left - margin.right;
@@ -272,9 +270,9 @@ function renderPage(data,geodata){
       .attr("stroke-dasharray", totalLength) // the higer the dasharray, the longer the dashe
       .attr("stroke-dashoffset", totalLength) //where does the offset begins
       .transition()
-      .duration(duration1*3/2)
+      .duration(duration1)
       .ease(d3.easeLinear) // speed at which the path transitions
-      .attr("stroke-dashoffset", 0);
+      .attr("stroke-dashoffset", 0);//where does the offset ends
 
     line.exit()
     .transition()
@@ -334,7 +332,7 @@ function renderPage(data,geodata){
   function createMap(){
 
 
-    var map_width = 1000;
+    var map_width = 800;
     var map_height = 500;
 
     // we're going to be coloring our cells based on their homeless population so we should compute the
@@ -387,6 +385,7 @@ function renderPage(data,geodata){
             .data(geodata.features)
             .enter()
             .append('path')
+            .attr("class", "state")
             .attr("d", geoGenerator)
             .attr("id", function(d) { return states_to_abb[d.properties.State]; })
 
