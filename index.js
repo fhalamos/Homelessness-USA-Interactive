@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   Promise.all(promises).then(function(values) {
     
-    //console.log(values);
+
     //Prepare data
     for (var i = 0; i< values.length-1; i++) {
       values[i].forEach(function(d) {
@@ -135,12 +135,13 @@ function renderPage(data,geodata){
     .attr('transform',`translate(${margin.left},${margin.top})`);
 
 
-  var firstUpdate=true;
 
   createMap();
 
-  
-  function updateLine(column, state){
+  var all_selected_data=[];
+  var firstUpdate=true;
+
+  function updateLine(column, state,removeState=false){
 
     if(firstUpdate){
       firstUpdate=false;
@@ -191,7 +192,21 @@ function renderPage(data,geodata){
           })
 
 
-    var yDomain = calculateDomain(selected_data,"Overall Homeless");
+    if(removeState){
+      //remove each element of selected_data from all_selected_data
+      selected_data.forEach(function(data){
+        var index = all_selected_data.indexOf(data);
+        all_selected_data.splice(index, 1);
+      });
+    }
+    else{
+      //Include each element of selecte_data in all_selected_data
+      selected_data.forEach(function(data){
+        all_selected_data.push(data);
+      });
+    }
+
+    var yDomain = calculateDomain(all_selected_data,"Overall Homeless");
   
     //Scale for y axis: # of homeless people
     const yScale = d3.scaleLinear()
@@ -199,26 +214,37 @@ function renderPage(data,geodata){
       .range([plotHeight,0]); 
 
 
-   // g.selectAll(".y_axis").remove();
-
     //Axis
-    var y_axis = g.selectAll(".y_axis")
-      .data(selected_data, function (d) { return d["State"] })// COMO FUNCIONA ESTO ENTNDER
-
-    y_axis.exit()
-    .transition()
-    .duration(0)
-    // .attr("opacity", 0)
-    .remove();
+    // var y_axis = g.selectAll(".y_axis")
+    //   .data(all_selected_data, function (d) { return d })// COMO FUNCIONA ESTO ENTNDER
 
 
-    y_axis.enter()
-      .append('g')
+    // var enter = y_axis.enter()
+    //   .append('g')
+    //   .attr("class", "y_axis")
+    //   .transition()
+    //   .duration(1000)
+    //   .call(d3.axisLeft(yScale));
+
+
+    // y_axis.exit()
+    //   .transition()
+    //   .duration(0)
+    //   // .attr("opacity", 0)
+    //   .remove();
+
+
+
+
+    //Remove old y axis
+    d3.select(".y_axis").remove();
+
+    //Create new y axis
+    var y_axis = g.append('g')
       .attr("class", "y_axis")
       .transition()
       .duration(1000)
-      .call(d3.axisLeft(yScale));
-      
+      .call(d3.axisLeft(yScale));  
 
 
     //Title
@@ -228,7 +254,7 @@ function renderPage(data,geodata){
     title.enter()
       .append('text')
       .attr('class', 'title')
-      .attr('x', margin.left) //Not using scaling here
+      .attr('x', margin.left) 
       .attr('y', margin.top/2)
       .attr('text-anchor', 'left')
       .attr('font-size', 20)
@@ -238,47 +264,63 @@ function renderPage(data,geodata){
 
     title.exit()
       .transition()
-      //.duration(1000)
+      .duration(1000)
       .attr("opacity", 0)
       .remove();
-      
-
+    
 
     var overall_line = d3.line()
         .x(function(d) { return xScale(d["Year"]); }) 
         .y(function(d) { return yScale(d[column]); })
         .curve(d3.curveMonotoneX); // apply smoothing to the line
 
+    var nested_data = d3.nest().key(function(d){return d["State"];}).entries(all_selected_data);
+    console.log(nested_data)
 
-
-    var line = g.selectAll(".line_overall")
-      .data(selected_data, function (d) { return d["State"] })
+    var lines = g.selectAll(".line_overall")
+      .data(nested_data, function (d) { return d["key"] }) 
     
-    //Used http://bl.ocks.org/duopixel/4063326 for animation
-    var path = line.enter()
+    var new_path = lines.enter()
       .append("path")
       .attr("class", "line_overall")
-      .attr("d", overall_line(selected_data))
-      .attr("stroke", "steelblue")
-      .attr("stroke-width", "2")
-      .attr("fill", "none");
+      .attr("d", function(d) { return overall_line(d.values); });
 
-    var totalLength = path.node().getTotalLength();
-    console.log(totalLength);
 
-    path
-      .attr("stroke-dasharray", totalLength) // the higer the dasharray, the longer the dashe
-      .attr("stroke-dashoffset", totalLength) //where does the offset begins
+    lines.merge(new_path)
       .transition()
-      .duration(duration1)
-      .ease(d3.easeLinear) // speed at which the path transitions
-      .attr("stroke-dashoffset", 0);//where does the offset ends
+      .duration(1000)
+      .attr("d", function(d) { console.log("d");console.log(d);return overall_line(d.values) });
 
-    line.exit()
+    lines.exit()
     .transition()
-    //.duration(1000)
+    .duration(duration1)
     .attr("opacity", 0)
     .remove();
+
+
+    //Used http://bl.ocks.org/duopixel/4063326 for animation
+    console.log("new_path");
+    console.log(new_path);
+    if(!removeState){
+
+      var totalLength = new_path.node().getTotalLength();
+
+      new_path
+        .attr("stroke-dasharray", totalLength) // the higer the dasharray, the longer the dashe
+        .attr("stroke-dashoffset", totalLength) //where does the offset begins
+        .transition()
+        .duration(duration1)
+        .ease(d3.easeLinear) // speed at which the path transitions
+        .attr("stroke-dashoffset", 0);//where does the offset ends      
+    }
+    
+
+
+    // line.exit()
+    // .transition()
+    // //.duration(1000)
+    // .attr("opacity", 0)
+    // .remove();
 
 
     //Legend
@@ -342,7 +384,7 @@ function renderPage(data,geodata){
             return isFinite(d["Overall Homeless"]) && selectRows(d,"State","Total",false);
           })
 
-    console.log(states_data);
+
 
 
     const homelessDomain = calculateDomain(states_data,"Overall Homeless");//computeDomain(statePops, 'pop');
@@ -396,9 +438,22 @@ function renderPage(data,geodata){
 
               return a;})
             .on("click", function(d) {
-              console.log(d);
+             
+              if(d3.select(this).classed('selected')){
+                //Remove!  
+                console.log("Remove "+d3.select(this).attr("id"));
+                updateLine("Overall Homeless",states_to_abb[d.properties.State],true);
+                d3.select(this).classed('selected',false);
+              }
+              else{//Not selected
+                //Include!
+                console.log("Include "+d3.select(this).attr("id"));
+                updateLine("Overall Homeless",states_to_abb[d.properties.State]);
+                d3.select(this).classed('selected',true); 
 
-              updateLine("Overall Homeless",states_to_abb[d.properties.State]);
+              }
+
+
             });
 
     //Used https://d3-legend.susielu.com/
