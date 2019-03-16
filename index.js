@@ -437,25 +437,18 @@ function renderPage(data,geodata){
             .attr('fill', "lightgrey")
             .attr('fill', function(d){
               
-              console.log(homelessDomain.max);
-              if(state_to_pop[states_to_abb[d.properties.State]]===homelessDomain.max){
-                console.log("aaa!!");
-                console.log(colorScale(state_to_pop[states_to_abb[d.properties.State]])); 
-              }
-              var a = colorScale(Math.sqrt(state_to_pop[states_to_abb[d.properties.State]]));
-
-              return a;})
+              return  colorScale(Math.sqrt(state_to_pop[states_to_abb[d.properties.State]]));})
             .on("click", function(d) {
              
               if(d3.select(this).classed('selected')){
-                //Remove!  
-                console.log("Remove "+d3.select(this).attr("id"));
+                //Remove! 
+                d3.select(this).attr('stroke-width',1);
                 updateLine("Overall Homeless",states_to_abb[d.properties.State],true);
                 d3.select(this).classed('selected',false);
               }
               else{//Not selected
                 //Include!
-                console.log("Include "+d3.select(this).attr("id"));
+                d3.select(this).attr('stroke-width',4);
                 updateLine("Overall Homeless",states_to_abb[d.properties.State]);
                 d3.select(this).classed('selected',true); 
 
