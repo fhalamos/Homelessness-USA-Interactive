@@ -215,32 +215,14 @@ function renderPage(data,geodata){
       .range([plotHeight,0]); 
 
 
-    //Axis
-    // var y_axis = g.selectAll(".y_axis")
-    //   .data(all_selected_data, function (d) { return d })// COMO FUNCIONA ESTO ENTNDER
-
-
-    // var enter = y_axis.enter()
-    //   .append('g')
-    //   .attr("class", "y_axis")
-    //   .transition()
-    //   .duration(1000)
-    //   .call(d3.axisLeft(yScale));
-
-
-    // y_axis.exit()
-    //   .transition()
-    //   .duration(0)
-    //   // .attr("opacity", 0)
-    //   .remove();
 
 
 
 
-    //Remove old y axis
+
+    //Remove old y axis and append new
     d3.select(".y_axis").remove();
 
-    //Create new y axis
     var y_axis = g.append('g')
       .attr("class", "y_axis")
       .transition()
@@ -248,11 +230,10 @@ function renderPage(data,geodata){
       .call(d3.axisLeft(yScale));  
 
 
-    //Title
-    var title = svg_plot.selectAll('.title')
-          .data(selected_data, function (d) { return d["State"] });
-    
-    title.enter()
+    //Remove old title and append new
+    d3.select(".title").remove();
+
+    svg_plot
       .append('text')
       .attr('class', 'title')
       .attr('x', margin.left) 
@@ -263,20 +244,21 @@ function renderPage(data,geodata){
       .attr('font-family', 'sans-serif')
       .text('Homeless in '+ state);
 
-    title.exit()
-      .transition()
-      .duration(1000)
-      .attr("opacity", 0)
-      .remove();
-    
 
-    var overall_line = d3.line()
-        .x(function(d) { return xScale(d["Year"]); }) 
-        .y(function(d) { return yScale(d[column]); })
-        .curve(d3.curveMonotoneX); // apply smoothing to the line
+
+
 
     var nested_data = d3.nest().key(function(d){return d["State"];}).entries(all_selected_data);
     console.log(nested_data)
+
+    
+
+  
+   
+    var overall_line = d3.line()
+      .x(function(d) { return xScale(d["Year"]); }) 
+      .y(function(d) { return yScale(d[column]); })
+      .curve(d3.curveMonotoneX); // apply smoothing to the line 
 
     var lines = g.selectAll(".line_overall")
       .data(nested_data, function (d) { return d["key"] }) 
@@ -300,8 +282,6 @@ function renderPage(data,geodata){
 
 
     //Used http://bl.ocks.org/duopixel/4063326 for animation
-    console.log("new_path");
-    console.log(new_path);
     if(!removeState){
 
       var totalLength = new_path.node().getTotalLength();
@@ -325,48 +305,48 @@ function renderPage(data,geodata){
 
 
     //Legend
-    var rect_legend = g.selectAll(".rect")
-      .data(selected_data, function (d) { return d["State"] });// ??
+    // var rect_legend = g.selectAll(".rect")
+    //   .data(selected_data, function (d) { return d["State"] });// ??
     
 
-    rect_legend
-      .enter()
-      .append("rect")
-      .transition()
-      .duration(duration1)
-      .attr('class', 'rect overall')
-      .attr('height',20)
-      .attr('width',20)
-      .attr('x', plotWidth+10)
-      .attr('y', yScale(calculateAverage(selected_data,column)))
-      .attr("opacity", 0.2);
+    // rect_legend
+    //   .enter()
+    //   .append("rect")
+    //   .transition()
+    //   .duration(duration1)
+    //   .attr('class', 'rect overall')
+    //   .attr('height',20)
+    //   .attr('width',20)
+    //   .attr('x', plotWidth+10)
+    //   .attr('y', yScale(calculateAverage(selected_data,column)))
+    //   .attr("opacity", 0.2);
       
-    rect_legend.exit()
-    .transition()
-    .attr("opacity", 0)
-    .remove();
+    // rect_legend.exit()
+    // .transition()
+    // .attr("opacity", 0)
+    // .remove();
 
-    var text_legend = g.selectAll(".text_legend")
-      .data(selected_data, function (d) { return d["State"] });
+    // var text_legend = g.selectAll(".text_legend")
+    //   .data(selected_data, function (d) { return d["State"] });
     
 
-    text_legend
-      .enter()
-      .append("text")
-      .transition()
-      .duration(duration1)   
-      .attr('class', 'text_legend overall')
-      .attr('height',20)
-      .attr('width',20)
-      .attr('x', plotWidth+35)
-      .attr('y', 15+yScale(calculateAverage(selected_data,column)))
-      .text(column)
-      .attr("opacity", 0.2);
+    // text_legend
+    //   .enter()
+    //   .append("text")
+    //   .transition()
+    //   .duration(duration1)   
+    //   .attr('class', 'text_legend overall')
+    //   .attr('height',20)
+    //   .attr('width',20)
+    //   .attr('x', plotWidth+35)
+    //   .attr('y', 15+yScale(calculateAverage(selected_data,column)))
+    //   .text(state)
+    //   .attr("opacity", 0.2);
 
-    text_legend.exit()
-    .transition()
-    .attr("opacity", 0)
-    .remove();
+    // text_legend.exit()
+    // .transition()
+    // .attr("opacity", 0)
+    // .remove();
   }
 
 
@@ -443,13 +423,19 @@ function renderPage(data,geodata){
               if(d3.select(this).classed('selected')){
                 //Remove! 
                 d3.select(this).attr('stroke-width',1);
+                d3.select(this).attr('stroke','black');
                 updateLine("Overall Homeless",states_to_abb[d.properties.State],true);
                 d3.select(this).classed('selected',false);
               }
               else{//Not selected
                 //Include!
+                d3.selectAll('.state').attr('stroke','black'); //Set all states stroke in black
                 d3.select(this).attr('stroke-width',4);
+
+                d3.select(this).attr('stroke','blue');
+//                stroke: blue;
                 updateLine("Overall Homeless",states_to_abb[d.properties.State]);
+
                 d3.select(this).classed('selected',true); 
 
               }
@@ -470,9 +456,6 @@ function renderPage(data,geodata){
       .shapeWidth(30)
       .orient('vertical')
       .scale(colorScale);
-
-
-
 
     svg_map.select(".legendLinear")
       .call(legendLinear);
