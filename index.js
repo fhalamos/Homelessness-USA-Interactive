@@ -216,10 +216,6 @@ function renderPage(data,geodata){
 
 
 
-
-
-
-
     //Remove old y axis and append new
     d3.select(".y_axis").remove();
 
@@ -246,37 +242,43 @@ function renderPage(data,geodata){
 
 
 
-
-
     var nested_data = d3.nest().key(function(d){return d["State"];}).entries(all_selected_data);
     console.log(nested_data)
-
-    
-
-  
    
     var overall_line = d3.line()
       .x(function(d) { return xScale(d["Year"]); }) 
       .y(function(d) { return yScale(d[column]); })
       .curve(d3.curveMonotoneX); // apply smoothing to the line 
 
+//    d3.selectAll(".line_overall").attr("stroke", "red");
+
     var lines = g.selectAll(".line_overall")
       .data(nested_data, function (d) { return d["key"] }) 
+
     
     var new_path = lines.enter()
       .append("path")
       .attr("class", "line_overall")
+
+
+      .attr("stroke-width", 3)
+      .attr("opacity", 1)
+
       .attr("d", function(d) { return overall_line(d.values); });
 
 
     lines.merge(new_path)
       .transition()
+      .attr("stroke-width", 2)
+      .attr("opacity", 0.5)  
+      .transition()
       .duration(1000)
       .attr("d", function(d) { console.log("d");console.log(d);return overall_line(d.values) });
+      
 
     lines.exit()
     .transition()
-    .duration(duration1)
+    .duration(duration1/2)
     .attr("opacity", 0)
     .remove();
 

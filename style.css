@@ -7,6 +7,20 @@
 	fill:blue;
 }
 
+h1{
+    font-family:  sans-serif;
+    color: steelblue;
+    font-size: 40px;
+    padding-left:10%;
+}
+
+h2{
+    font-family:  sans-serif;
+    color: steelblue;
+    font-size: 20px;
+    padding-left:10%;
+}
+
 .state-active{
     fill:blue;
 }
@@ -20,7 +34,6 @@
 .line_overall {
     fill: none;
     stroke: steelblue;
-    stroke-width: 3;
 
 }
 
