@@ -1,6 +1,6 @@
 
 
-const toNum = d => parseInt(d.replace(',',''));
+const toNum = d => parseFloat(d.replace(',',''));
 
 function calculateAverage(data,column){
   var sum=0;
@@ -62,6 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
+    console.log(data);
     var geodata = values[values.length-1];
     renderPage(data,geodata);
   });
@@ -381,18 +382,19 @@ function renderPage(data,geodata){
     // population domain
 
     var states_data= data.filter(function(d){
-            return isFinite(d["Overall Homeless"]) && selectRows(d,"State","Total",false);
+            return isFinite(d["Homeless/Capita"]) && selectRows(d,"State","Total",false);
           })
 
 
 
 
-    const homelessDomain = calculateDomain(states_data,"Overall Homeless");//computeDomain(statePops, 'pop');
+    const homelessDomain = calculateDomain(states_data,"Homeless/Capita");//computeDomain(statePops, 'pop');
    
     
     var colorScale = d3.scaleLinear()
-    .domain([homelessDomain.min, homelessDomain.max])
-    .range(["#43bb38", "#e41a1c"]);
+    .domain([Math.sqrt(homelessDomain.min), Math.sqrt(homelessDomain.max)])
+    .range(["#43bb38", "#e41a1c"])
+    .interpolate(d3.interpolateRgb);
 
 
     var data_2018= data.filter(function(d){
@@ -401,7 +403,7 @@ function renderPage(data,geodata){
 
     //Create map from state to number of homeless in 2018, used for coloring
     const state_to_pop = data_2018.reduce((acc, row) => {
-      acc[row.State] = row["Overall Homeless"];
+      acc[row.State] = row["Homeless/Capita"];
       return acc;
     }, {});
 
@@ -434,7 +436,13 @@ function renderPage(data,geodata){
             .attr('stroke', 'black')
             .attr('fill', "lightgrey")
             .attr('fill', function(d){
-              var a = colorScale(state_to_pop[states_to_abb[d.properties.State]]);
+              
+              console.log(homelessDomain.max);
+              if(state_to_pop[states_to_abb[d.properties.State]]===homelessDomain.max){
+                console.log("aaa!!");
+                console.log(colorScale(state_to_pop[states_to_abb[d.properties.State]])); 
+              }
+              var a = colorScale(Math.sqrt(state_to_pop[states_to_abb[d.properties.State]]));
 
               return a;})
             .on("click", function(d) {
@@ -459,14 +467,19 @@ function renderPage(data,geodata){
     //Used https://d3-legend.susielu.com/
     svg_map.append("g")
       .attr("class", "legendLinear")
-      .attr('transform',`translate(20,380)`);
+      .attr('transform',`translate(20,385)`)
+      .style("font-size","20px");
 
 
     var legendLinear = d3.legendColor()
+      //.titleWidth(100)
+      .title("Homeless every 1000")      
       .shapeWidth(30)
       .orient('vertical')
-      .scale(colorScale)
-      .title("Amount of homeless in 2018");
+      .scale(colorScale);
+
+
+
 
     svg_map.select(".legendLinear")
       .call(legendLinear);
