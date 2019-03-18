@@ -358,7 +358,7 @@ function renderPage(data,geodata){
 
 
     var map_width = 800;
-    var map_height = 500;
+    var map_height = 600;
 
     // we're going to be coloring our cells based on their homeless population so we should compute the
     // population domain
@@ -391,7 +391,7 @@ function renderPage(data,geodata){
 
 
 
-    var projection = d3.geoAlbers()//geoEquirectangular();
+    var projection = d3.geoAlbersUsa()//geoEquirectangular();
      .scale(900)
      .translate([350, 250]);
 
@@ -406,6 +406,7 @@ function renderPage(data,geodata){
     const g_map =  svg_map.append('g')
       .attr('transform',`translate(10,10)`);//${margin.left},${margin.top})`);
 
+    console.log(geodata.features);
 
     g_map.selectAll(".state")
             .data(geodata.features)
@@ -413,20 +414,20 @@ function renderPage(data,geodata){
             .append('path')
             .attr("class", "state")
             .attr("d", geoGenerator)
-            .attr("id", function(d) { return states_to_abb[d.properties.State]; })
+            .attr("id", function(d) { return states_to_abb[d.properties.name]; })
 
             .attr('stroke', 'black')
             .attr('fill', "lightgrey")
             .attr('fill', function(d){
               
-              return  colorScale(Math.sqrt(state_to_pop[states_to_abb[d.properties.State]]));})
+              return  colorScale(Math.sqrt(state_to_pop[states_to_abb[d.properties.name]]));})
             .on("click", function(d) {
              
               if(d3.select(this).classed('selected')){
                 //Remove! 
                 d3.select(this).attr('stroke-width',1);
                 d3.select(this).attr('stroke','black');
-                updateLine("Overall Homeless",states_to_abb[d.properties.State],true);
+                updateLine("Overall Homeless",states_to_abb[d.properties.name],true);
                 d3.select(this).classed('selected',false);
               }
               else{//Not selected
@@ -436,7 +437,7 @@ function renderPage(data,geodata){
 
                 d3.select(this).attr('stroke','blue');
 //                stroke: blue;
-                updateLine("Overall Homeless",states_to_abb[d.properties.State]);
+                updateLine("Overall Homeless",states_to_abb[d.properties.name]);
 
                 d3.select(this).classed('selected',true); 
 
@@ -448,7 +449,7 @@ function renderPage(data,geodata){
     //Used https://d3-legend.susielu.com/
     svg_map.append("g")
       .attr("class", "legendLinear")
-      .attr('transform',`translate(20,385)`)
+      .attr('transform',`translate(40,500)`)
       .style("font-size","20px");
 
 
@@ -456,7 +457,7 @@ function renderPage(data,geodata){
       //.titleWidth(100)
       .title("Homeless every 1000")      
       .shapeWidth(30)
-      .orient('vertical')
+      .orient('horizontal')
       .scale(colorScale);
 
     svg_map.select(".legendLinear")
