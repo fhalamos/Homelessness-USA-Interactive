@@ -456,7 +456,7 @@ function renderPage(data,geodata){
 
     var legendLinear = d3.legendColor()
       //.titleWidth(100)
-      .title("Homeless every 1000")      
+      .title("Homeless every 1,000 people")      
       .shapeWidth(30)
       .orient('horizontal')
       .scale(colorScale);
