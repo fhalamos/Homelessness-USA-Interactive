@@ -229,6 +229,11 @@ function renderPage(data,geodata){
     //Remove old title and append new
     d3.select(".title").remove();
 
+    var title="Homeless in "+abb_to_states[state];
+    if(removeState){
+      title=""
+    }
+
     svg_plot
       .append('text')
       .attr('class', 'title')
@@ -238,7 +243,7 @@ function renderPage(data,geodata){
       .attr('font-size', 20)
       .attr('font-weight', 'bold')
       .attr('font-family', 'sans-serif')
-      .text('Homeless in '+ state);
+      .text(title);
 
 
 
@@ -259,11 +264,8 @@ function renderPage(data,geodata){
     var new_path = lines.enter()
       .append("path")
       .attr("class", "line_overall")
-
-
       .attr("stroke-width", 3)
       .attr("opacity", 1)
-
       .attr("d", function(d) { return overall_line(d.values); });
 
 
@@ -278,7 +280,6 @@ function renderPage(data,geodata){
 
     lines.exit()
     .transition()
-    .duration(duration1/2)
     .attr("opacity", 0)
     .remove();
 
@@ -530,3 +531,66 @@ var states_to_abb  =
     'Wisconsin': 'WI',
     'Wyoming': 'WY'
   }
+
+var abb_to_states = 
+  {
+    "AL": "Alabama",
+    "AK": "Alaska",
+    "AS": "American Samoa",
+    "AZ": "Arizona",
+    "AR": "Arkansas",
+    "CA": "California",
+    "CO": "Colorado",
+    "CT": "Connecticut",
+    "DE": "Delaware",
+    "DC": "District Of Columbia",
+    "FM": "Federated States Of Micronesia",
+    "FL": "Florida",
+    "GA": "Georgia",
+    "GU": "Guam",
+    "HI": "Hawaii",
+    "ID": "Idaho",
+    "IL": "Illinois",
+    "IN": "Indiana",
+    "IA": "Iowa",
+    "KS": "Kansas",
+    "KY": "Kentucky",
+    "LA": "Louisiana",
+    "ME": "Maine",
+    "MH": "Marshall Islands",
+    "MD": "Maryland",
+    "MA": "Massachusetts",
+    "MI": "Michigan",
+    "MN": "Minnesota",
+    "MS": "Mississippi",
+    "MO": "Missouri",
+    "MT": "Montana",
+    "NE": "Nebraska",
+    "NV": "Nevada",
+    "NH": "New Hampshire",
+    "NJ": "New Jersey",
+    "NM": "New Mexico",
+    "NY": "New York",
+    "NC": "North Carolina",
+    "ND": "North Dakota",
+    "MP": "Northern Mariana Islands",
+    "OH": "Ohio",
+    "OK": "Oklahoma",
+    "OR": "Oregon",
+    "PW": "Palau",
+    "PA": "Pennsylvania",
+    "PR": "Puerto Rico",
+    "RI": "Rhode Island",
+    "SC": "South Carolina",
+    "SD": "South Dakota",
+    "TN": "Tennessee",
+    "TX": "Texas",
+    "UT": "Utah",
+    "VT": "Vermont",
+    "VI": "Virgin Islands",
+    "VA": "Virginia",
+    "WA": "Washington",
+    "WV": "West Virginia",
+    "WI": "Wisconsin",
+    "WY": "Wyoming"
+}
