@@ -1,4 +1,4 @@
-
+console.log("hola");console.log(window.innerWidth);
 
 const toNum = d => parseFloat(d.replace(',',''));
 
@@ -28,8 +28,6 @@ function formatCSV(d){
      });
     return d;
 };
-
-
 
 
 //Wait until the page is loaded before we start to do thigs
@@ -104,10 +102,12 @@ function calculateDomain(data,column){
 
 function renderPage(data,geodata){
 
+  createMap();
+
   //Declare dimensions of plotting area
   const height = 500;
-  const width = 900;
-  const margin = {top: 80, left: 100, right: 350, bottom: 50};
+  const width = window.innerWidth/2.5;
+  const margin = {top: 80, left: 100, right: 100, bottom: 80};
 
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.bottom - margin.top;
@@ -125,7 +125,6 @@ function renderPage(data,geodata){
     .domain([xDomain.min, xDomain.max])
     .range([0,plotWidth]); 
 
-
   // We create the svg, and set height and width 
   const svg_plot = d3.select('.plot')
     .append('svg')
@@ -134,10 +133,6 @@ function renderPage(data,geodata){
   
   const g =  svg_plot.append('g')
     .attr('transform',`translate(${margin.left},${margin.top})`);
-
-
-
-  createMap();
 
   var all_selected_data=[];
   var firstUpdate=true;
@@ -255,7 +250,7 @@ function renderPage(data,geodata){
       .y(function(d) { return yScale(d[column]); })
       .curve(d3.curveMonotoneX); // apply smoothing to the line 
 
-//    d3.selectAll(".line_overall").attr("stroke", "red");
+
 
     var lines = g.selectAll(".line_overall")
       .data(nested_data, function (d) { return d["key"] }) 
@@ -357,9 +352,14 @@ function renderPage(data,geodata){
   //Used https://d3indepth.com/geographic/
   function createMap(){
 
+    var width = window.innerWidth/2;
+    var height = 800;
 
-    var map_width = 800;
-    var map_height = 600;
+    const margin = {top: 80, left: 50, right: 50, bottom: 80};
+
+    const mapWidth = width - margin.left - margin.right;
+    const mapHeight = height - margin.bottom - margin.top;
+
 
     // we're going to be coloring our cells based on their homeless population so we should compute the
     // population domain
@@ -376,7 +376,7 @@ function renderPage(data,geodata){
     
     var colorScale = d3.scaleLinear()
     .domain([Math.sqrt(homelessDomain.min), Math.sqrt(homelessDomain.max)])
-    .range(["#43bb38", "#e41a1c"])
+    .range(["#1a9641", "#d7191c"])
     .interpolate(d3.interpolateRgb);
 
 
@@ -390,19 +390,29 @@ function renderPage(data,geodata){
       return acc;
     }, {});
 
+    var projectionScale;
+    var translateX;
 
+    if(window.innerWidth>1000){
+      projectionScale=1000;
+      translateX=400;
+    }
+    else{
+      projectionScale=500;
+      translateX=300;
+    }
 
     var projection = d3.geoAlbersUsa()//geoEquirectangular();
-     .scale(900)
-     .translate([350, 250]);
+     .scale(projectionScale)
+     .translate([translateX, 250]);
 
     var geoGenerator = d3.geoPath(projection);
 
 
     var svg_map = d3.select(".map")
             .append("svg")
-            .attr("width", map_width)
-            .attr("height", map_height)
+            .attr("width", mapWidth)
+            .attr("height", mapHeight)
 
     const g_map =  svg_map.append('g')
       .attr('transform',`translate(10,10)`);//${margin.left},${margin.top})`);
@@ -437,7 +447,7 @@ function renderPage(data,geodata){
                 d3.select(this).attr('stroke-width',4);
 
                 d3.select(this).attr('stroke','blue');
-//                stroke: blue;
+
                 updateLine("Overall Homeless",states_to_abb[d.properties.name]);
 
                 d3.select(this).classed('selected',true); 
@@ -467,10 +477,7 @@ function renderPage(data,geodata){
 };
 
 
-
-
-var states_to_abb  =
-  {
+var states_to_abb  ={
     'Alabama': 'AL',
     'Alaska': 'AK',
     'American Samoa': 'AS',
@@ -530,10 +537,9 @@ var states_to_abb  =
     'West Virginia': 'WV',
     'Wisconsin': 'WI',
     'Wyoming': 'WY'
-  }
+}
 
-var abb_to_states = 
-  {
+var abb_to_states = {
     "AL": "Alabama",
     "AK": "Alaska",
     "AS": "American Samoa",

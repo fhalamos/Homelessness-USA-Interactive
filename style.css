@@ -11,7 +11,8 @@ h1{
     font-family:  sans-serif;
     color: steelblue;
     font-size: 40px;
-    padding-left:10%;
+    padding:1%;
+    text-align: center;
 }
 
 h2{
@@ -37,18 +38,43 @@ h2{
 
 }
 
-div.map {
-  position: absolute;
-  top: 100px; 
-  width: 200px;
-  height: 100px;
+.vis-container {
+    display: flex;
+    justify-content: left;
 }
 
-div.plot {
-  position: absolute;
-  top: 100px; 
-  left: 700px;
-  width: 200px;
-  height: 100px;
+.map {
+  /*position: absolute;*/
+  /*top: 100px; */
+  /*width: 200px;*/
+  /*padding:10%;*/
+  
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  justify-content: left; 
 }
 
+.plot {
+  /*position: absolute;*/
+  /*top: 100px; */
+  /*left: 700px;*/
+  /*width: 200px;*/
+  /*padding:10%;*/
+  
+  width: 100%;
+  height: 100%;
+
+  display: flex;
+  justify-content: center;
+}
+
+/*https://www.w3schools.com/whatis/whatis_responsive.asp*/
+/* Use Media Query to add a breakpoint at 800px: */
+@media screen and (max-width:800px) {
+  /*.map , .plot {width:100%;}*/
+  .vis-container {
+    flex-direction: column;
+  }
+}
