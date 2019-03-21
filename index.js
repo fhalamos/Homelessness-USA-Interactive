@@ -166,19 +166,19 @@ function renderPage(data,geodata){
       
 
       //Caption
-      const caption = svg_plot.selectAll('.caption')
-                          .data([{x: plotWidth-300, y: height-3,
-                                  label: 'Source: U.S. Department of Housing and Urban Development (HUD)'}]); 
-      caption.enter()
-        .append('text')
-        .attr('class', 'caption')
-        .attr('x', d => d.x)
-        .attr('y', d => d.y)
-        .attr('text-anchor', 'left')
-        .attr('font-size', 14)
-        .attr('font-family', 'georgia')
-        .attr('font-style', 'italic')
-        .text(d => d.label);
+      // const caption = svg_plot.selectAll('.caption')
+      //                     .data([{x: plotWidth-300, y: height-3,
+      //                             label: 'Source: U.S. Department of Housing and Urban Development (HUD)'}]); 
+      // caption.enter()
+      //   .append('text')
+      //   .attr('class', 'caption')
+      //   .attr('x', d => d.x)
+      //   .attr('y', d => d.y)
+      //   .attr('text-anchor', 'left')
+      //   .attr('font-size', 14)
+      //   .attr('font-family', 'georgia')
+      //   .attr('font-style', 'italic')
+      //   .text(d => d.label);
     }
     
     var duration1=2000;
