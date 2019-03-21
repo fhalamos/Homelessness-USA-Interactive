@@ -393,12 +393,16 @@ function renderPage(data,geodata){
     var projectionScale;
     var translateX;
 
-    if(window.innerWidth>1000){
-      projectionScale=1000;
+    projectionScale=800;
+    translateX=400;
+
+    if(window.innerWidth>1400){
+      projectionScale=800;
       translateX=400;
     }
     else{
-      projectionScale=500;
+      console.log("menor projection scale");
+      projectionScale=700;
       translateX=300;
     }
 
@@ -407,7 +411,6 @@ function renderPage(data,geodata){
      .translate([translateX, 250]);
 
     var geoGenerator = d3.geoPath(projection);
-
 
     var svg_map = d3.select(".map")
             .append("svg")
