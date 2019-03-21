@@ -11,8 +11,16 @@ h1{
     font-family:  sans-serif;
     color: steelblue;
     font-size: 40px;
-    padding:1%;
+    /*padding:1%;*/
     text-align: center;
+}
+.mapTitle{
+    font-family:  sans-serif;
+    color: steelblue;
+    font-size: 20px;
+    /*padding:1%;*/
+    text-align: left;
+    margin: 1%;
 }
 
 h2{

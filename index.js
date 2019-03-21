@@ -221,24 +221,24 @@ function renderPage(data,geodata){
       .call(d3.axisLeft(yScale));  
 
 
-    //Remove old title and append new
-    d3.select(".title").remove();
+    // //Remove old title and append new
+    // d3.select(".title").remove();
 
-    var title="Homeless in "+abb_to_states[state];
-    if(removeState){
-      title=""
-    }
+    // var title="Homeless in "+abb_to_states[state];
+    // if(removeState){
+    //   title=""
+    // }
 
-    svg_plot
-      .append('text')
-      .attr('class', 'title')
-      .attr('x', margin.left) 
-      .attr('y', margin.top/2)
-      .attr('text-anchor', 'left')
-      .attr('font-size', 20)
-      .attr('font-weight', 'bold')
-      .attr('font-family', 'sans-serif')
-      .text(title);
+    // svg_plot
+    //   .append('text')
+    //   .attr('class', 'title')
+    //   .attr('x', margin.left) 
+    //   .attr('y', margin.top/2)
+    //   .attr('text-anchor', 'left')
+    //   .attr('font-size', 20)
+    //   .attr('font-weight', 'bold')
+    //   .attr('font-family', 'sans-serif')
+    //   .text(title);
 
 
 
@@ -416,6 +416,28 @@ function renderPage(data,geodata){
             .append("svg")
             .attr("width", mapWidth)
             .attr("height", mapHeight)
+
+    svg_map.append("text")
+      .attr("class", "mapTitle")
+      .attr('transform',`translate(50,30)`)
+      .style("font-size","20px")
+      .text("Select one (or more) states in the map to see how they have changed")
+
+    svg_map.append("text")
+      .attr("class", "mapTitle")
+      .attr('transform',`translate(50,50)`)
+      .style("font-size","20px")
+      .text("in time.")
+
+
+      // g.append("text")
+      //   .attr("x", plotWidth/2)
+      //   .attr("y", plotHeight+margin.bottom*2/3 )
+      //   .style("text-anchor", "middle")
+      //   .attr('font-size', 14)
+      //   .text("Year");  
+
+
 
     const g_map =  svg_map.append('g')
       .attr('transform',`translate(10,10)`);//${margin.left},${margin.top})`);
