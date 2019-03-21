@@ -4,8 +4,15 @@
 }
 
 .overall{
-	fill:blue;
+	fill:steelblue;
+    opacity: 1;
 }
+
+.text_legend{
+    fill:steelblue;
+    opacity: 1;
+}
+
 
 h1{
     font-family:  sans-serif;

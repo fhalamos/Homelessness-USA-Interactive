@@ -165,7 +165,17 @@ function renderPage(data,geodata){
             .style("text-anchor", "middle")
             .text("Number of homeless");
 
-      
+      svg_plot
+        .append('text')
+        .attr('class', 'title')
+        .attr('x', margin.left) 
+        .attr('y', margin.top/2)
+        .attr('text-anchor', 'left')
+        .attr('font-size', 20)
+        .attr('font-weight', 'bold')
+        .attr('font-family', 'sans-serif')
+        .text("Evolution of number of homeless");      
+
 
       //Caption
       // const caption = svg_plot.selectAll('.caption')
@@ -223,26 +233,6 @@ function renderPage(data,geodata){
       .call(d3.axisLeft(yScale));  
 
 
-    // //Remove old title and append new
-    // d3.select(".title").remove();
-
-    // var title="Homeless in "+abb_to_states[state];
-    // if(removeState){
-    //   title=""
-    // }
-
-    // svg_plot
-    //   .append('text')
-    //   .attr('class', 'title')
-    //   .attr('x', margin.left) 
-    //   .attr('y', margin.top/2)
-    //   .attr('text-anchor', 'left')
-    //   .attr('font-size', 20)
-    //   .attr('font-weight', 'bold')
-    //   .attr('font-family', 'sans-serif')
-    //   .text(title);
-
-
 
     var nested_data = d3.nest().key(function(d){return d["State"];}).entries(all_selected_data);
     console.log(nested_data)
@@ -285,7 +275,6 @@ function renderPage(data,geodata){
     if(!removeState){
 
       var totalLength = new_path.node().getTotalLength();
-
       new_path
         .attr("stroke-dasharray", totalLength) // the higer the dasharray, the longer the dashe
         .attr("stroke-dashoffset", totalLength) //where does the offset begins
@@ -330,23 +319,27 @@ function renderPage(data,geodata){
     //   .data(selected_data, function (d) { return d["State"] });
     
 
-    // text_legend
-    //   .enter()
-    //   .append("text")
-    //   .transition()
-    //   .duration(duration1)   
-    //   .attr('class', 'text_legend overall')
-    //   .attr('height',20)
-    //   .attr('width',20)
-    //   .attr('x', plotWidth+35)
-    //   .attr('y', 15+yScale(calculateAverage(selected_data,column)))
-    //   .text(state)
-    //   .attr("opacity", 0.2);
+    console.log("selected_data");
+    console.log();
 
-    // text_legend.exit()
-    // .transition()
-    // .attr("opacity", 0)
-    // .remove();
+    // text_legend
+
+    d3.select(".text_legend").remove();
+
+    if(!removeState)
+    {
+      g.append("text")
+      .attr('y', 5+yScale(selected_data[1]["Overall Homeless"]))
+      .transition()
+      .duration(duration1)   
+      .attr('class', 'text_legend')
+      .attr('height',20)
+      .attr('width',20)
+      .attr('x', 10+plotWidth)
+      .attr('y', 5+yScale(selected_data[11]["Overall Homeless"]))
+      .text(abb_to_states[state]) 
+      .attr("opacity", 0.2);
+    }
   }
 
 
@@ -463,6 +456,9 @@ function renderPage(data,geodata){
              
               if(d3.select(this).classed('selected')){
                 //Remove! 
+
+                console.log(d3.select('.text_legend'));
+                d3.select('.text_legend').remove();
                 d3.select(this).attr('stroke-width',1);
                 d3.select(this).attr('stroke','black');
                 updateLine("Overall Homeless",states_to_abb[d.properties.name],true);
