@@ -144,8 +144,10 @@ function renderPage(data,geodata){
 
       //X axis
       g.append('g')
-        .call(d3.axisBottom(xScale))
-        .attr('transform', `translate(0,${plotHeight})`);
+        .call(d3.axisBottom(xScale).tickFormat(d3.format("d")))
+        .attr('transform', `translate(0,${plotHeight})`)        ;
+
+
       
       //Axis labels
       g.append("text")
