@@ -453,7 +453,16 @@ function renderPage(data,geodata){
             .attr("width", mapWidth)
             .attr("height", mapHeight)
 
-
+    svg_map
+      .append('text')
+      .attr('class', 'title')
+      .attr('x', margin.left) 
+      .attr('y', margin.top/2)
+      .attr('text-anchor', 'left')
+      .attr('font-size', 20)
+      .attr('font-weight', 'bold')
+      .attr('font-family', 'sans-serif')
+      .text("Density of homeless per state");  
 
 
     const g_map =  svg_map.append('g')
