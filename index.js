@@ -137,12 +137,23 @@ function renderPage(data,geodata){
 
   };
 
-
   createMap();
 
   //Declare dimensions of plotting area
   const height = 500;
-  const width = window.innerWidth/2.5;
+
+  var width;
+  if(window.innerWidth>1200){
+    width = window.innerWidth/2.5;
+  }
+  else if (window.innerWidth>900){
+    width = window.innerWidth/1.5;
+  }
+  else{
+    width = window.innerWidth;
+  }
+
+
   const margin = {top: 80, left: 100, right: 150, bottom: 80};
 
   const plotWidth = width - margin.left - margin.right;
@@ -248,6 +259,12 @@ function renderPage(data,geodata){
             .style("text-anchor", "middle")
             .text("Number of "+column);
 
+    var plot_title='Evolution of number of homeless';
+
+    if(window.innerWidth<1200){
+      plot_title='Evolution of homeless';
+    }
+
       svg_plot
         .append('text')
         .attr('class', 'title')
@@ -257,7 +274,7 @@ function renderPage(data,geodata){
         .attr('font-size', 20)
         .attr('font-weight', 'bold')
         .attr('font-family', 'sans-serif')
-        .text("Evolution of number of homeless");      
+        .text(plot_title);      
 
 
 
@@ -389,12 +406,13 @@ function renderPage(data,geodata){
   function createMap(){
 
     var width = window.innerWidth/2;
+
     var height = 800;
 
-    const margin = {top: 80, left: 50, right: 50, bottom: 80};
+    var margin = {top: 80, left: 50, right: 50, bottom: 80};
 
-    const mapWidth = width - margin.left - margin.right;
-    const mapHeight = height - margin.bottom - margin.top;
+    var mapWidth = width - margin.left - margin.right;
+    var mapHeight = height - margin.bottom - margin.top;
 
 
     // we're going to be coloring our cells based on their homeless population so we should compute the
@@ -426,20 +444,37 @@ function renderPage(data,geodata){
       return acc;
     }, {});
 
+
+    var map_title='Density of homeless per state';
+
     var projectionScale;
     var translateX;
 
     projectionScale=800;
     translateX=400;
 
-    if(window.innerWidth>1400){
+
+
+    console.log(window.innerWidth);
+    if(window.innerWidth>1550){
+      console.log('hola');
       projectionScale=800;
       translateX=400;
     }
-    else{
-      console.log("menor projection scale");
+    else if(window.innerWidth>700) {
       projectionScale=700;
       translateX=300;
+    }
+    else {
+      projectionScale=350;
+      translateX=150;
+    }
+
+    //Now map and chart are in vertical order, so we can increase width    
+    if(window.innerWidth<1200){
+      map_title="Density of homeless"
+      width = window.innerWidth;
+      mapWidth = width - margin.left - margin.right;
     }
 
     var projection = d3.geoAlbersUsa()//geoEquirectangular();
@@ -462,7 +497,7 @@ function renderPage(data,geodata){
       .attr('font-size', 20)
       .attr('font-weight', 'bold')
       .attr('font-family', 'sans-serif')
-      .text("Density of homeless per state");  
+      .text(map_title);  
 
 
     const g_map =  svg_map.append('g')
