@@ -186,6 +186,13 @@ function renderPage(data,geodata){
     firstUpdate=true;
   }
 
+
+    //Based on http://bl.ocks.org/dougdowson/9832019
+    var plot_tooltip = d3.select("body").append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0);
+
+
   function updateLine(column, state,removeState=false){
 
     console.log("column");
@@ -364,6 +371,28 @@ function renderPage(data,geodata){
     .remove();
 
 
+    //Add tooltips events. based on http://bl.ocks.org/dougdowson/9832019
+    lines
+    .on("mouseover", function(d) {
+
+      g.append("text")
+      .attr('x', 10+plotWidth)
+      .attr('y', 5+yScale(d.values[d.values.length-1][column]))   
+      .attr('class', 'text_another_legend')
+      .attr('height',20)
+      .attr('width',20)
+      .text(abb_to_states[d.key]) 
+
+    })
+    .on("mouseout", function(d) {
+      
+      g.selectAll('.text_another_legend')
+      .transition()
+      .duration(500)
+      .remove();
+
+    });
+
 
 
     //Used http://bl.ocks.org/duopixel/4063326 for animation
@@ -506,7 +535,7 @@ function renderPage(data,geodata){
 
 
     //Based on http://bl.ocks.org/dougdowson/9832019
-    var tooltip = d3.select("body").append("div")
+    var map_tooltip = d3.select("body").append("div")
       .attr("class", "tooltip")
       .style("opacity", 0);
 
@@ -555,16 +584,16 @@ function renderPage(data,geodata){
     //Add tooltips events. based on http://bl.ocks.org/dougdowson/9832019
     states_shapes
     .on("mouseover", function(d) {
-      tooltip.transition()
+      map_tooltip.transition()
       .duration(250)
       .style("opacity", 1);
 
-      tooltip.html("<b>"+d.properties.name+"</b><br>Homeless/1000 hab: "+state_to_pop[states_to_abb[d.properties.name]].toFixed(1))
+      map_tooltip.html("<b>"+d.properties.name+"</b><br>Homeless/1000 hab: "+state_to_pop[states_to_abb[d.properties.name]].toFixed(1))
       .style("left", (d3.event.pageX ) + "px") //Set position of tooltip
       .style("top", (d3.event.pageY) + "px");
     })
     .on("mouseout", function(d) {
-      tooltip.transition()
+      map_tooltip.transition()
       .duration(250)
       .style("opacity", 0);
     });
