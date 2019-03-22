@@ -14,6 +14,7 @@
 }
 
 
+
 h1{
     font-family:  sans-serif;
     color: steelblue;
@@ -67,7 +68,7 @@ footer {
   text-align: right;
   padding-right: 10px;
 
-  font-family: 'georgia';
+  font-family: sans-serif;
   font-style: italic;
 
 }
@@ -109,18 +110,6 @@ a.links{
   justify-content: center;
 }
 
-/*https://www.w3schools.com/whatis/whatis_responsive.asp*/
-/* Use Media Query to add a breakpoint at 800px: */
-@media screen and (max-width:1300px) {
-  /*.map , .plot {width:100%;}*/
-  .vis-container {
-    flex-direction: column;
-
-  }
-  .map {
-    justify-content: center; 
-  }
-}
 
 
 /*Based on http://bl.ocks.org/dougdowson/9832019*/
@@ -132,3 +121,45 @@ a.links{
 
 }
 
+
+
+.instructions {
+  display: flex;
+  flex-direction: column;
+ /* margin: 0;
+  min-height: 100vh;*/
+}
+
+.selector{
+    display: flex;
+    margin-top: 10px;
+    margin-left: 50px;
+    width: 200px;
+    /*visibility: hidden;*/
+}
+
+.instructions_text{
+    display: flex;
+    margin-left: 50px;
+    font-size: 20px;
+    font-family: sans-serif;
+    color: steelblue;
+    /*visibility: hidden;*/
+}
+
+
+
+/*https://www.w3schools.com/whatis/whatis_responsive.asp*/
+/* Use Media Query to add a breakpoint at 800px: */
+@media screen and (max-width:1300px) {
+  /*.map , .plot {width:100%;}*/
+  .vis-container {
+    flex-direction: column;
+
+  }
+  .map, .instructions, .instructions_text, .selector {
+    justify-content: center; 
+    text-align: center;
+    align-items: center;
+  }
+}

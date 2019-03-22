@@ -1,5 +1,3 @@
-console.log("hola");console.log(window.innerWidth);
-
 const toNum = d => parseFloat(d.replace(',',''));
 
 function calculateAverage(data,column){
@@ -60,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
 
-    console.log(data);
+
     var geodata = values[values.length-1];
     renderPage(data,geodata);
   });
@@ -102,51 +100,134 @@ function calculateDomain(data,column){
 
 function renderPage(data,geodata){
 
+  //   <p class="instructions">Select one (or more) states in the map to see how they have changed in time </p>
+
+  // <p class="instructions"> </p0
+  
+  var homelessSubpopulations = ["Overall Homeless", "Chronically Homeless", "Homeless Veterans"];
+  var selectedColumn = homelessSubpopulations[0];
+
+  d3.select('.instructions')
+    .append('text')
+    .attr('class','instructions_text')
+    .text('Please select one homeless subpopulation,');
+
+  d3.select('.instructions')
+    .append('text')
+    .attr('class','instructions_text')
+    .text('and click on the states you would like to study');
+
+  var selector = d3.select('.instructions')
+    .append('select')
+    .attr('class','selector')
+    .on('change',onSubpopulationChange)
+
+  var options = selector
+    .selectAll('option')
+    .data(homelessSubpopulations)
+    .enter()
+    .append('option')
+    .text(function (d) { return d; });
+
+  function onSubpopulationChange() {
+    selectedColumn = d3.select('select').property('value')
+    removeAllLines(selectedColumn);
+    //location.reload();
+
+
+  };
+
+
   createMap();
 
   //Declare dimensions of plotting area
   const height = 500;
   const width = window.innerWidth/2.5;
-  const margin = {top: 80, left: 100, right: 100, bottom: 80};
+  const margin = {top: 80, left: 100, right: 150, bottom: 80};
 
   const plotWidth = width - margin.left - margin.right;
   const plotHeight = height - margin.bottom - margin.top;
 
-  //Calculate domains of x and y variables. We will use this for scalling
-  const xDomain = data.reduce((acc, row) => {
-    return {
-      min: Math.min(row["Year"], acc.min),
-      max: Math.max(row["Year"], acc.max)
-    };
-  }, {min: Infinity, max: -Infinity});
 
-  //Scale for x acis: # of homeless programs
-  const xScale = d3.scaleLinear()
-    .domain([xDomain.min, xDomain.max])
-    .range([0,plotWidth]); 
 
   // We create the svg, and set height and width 
-  const svg_plot = d3.select('.plot')
+  var svg_plot = d3.select('.plot')
     .append('svg')
+    .attr('class', 'svg_plot')
     .attr('width', width)
     .attr('height', height)
   
-  const g =  svg_plot.append('g')
+  var g =  svg_plot.append('g')
+    .attr('class','g_plot')
     .attr('transform',`translate(${margin.left},${margin.top})`);
 
   var all_selected_data=[];
   var firstUpdate=true;
 
 
+  function removeAllLines(column) {
+
+    d3.selectAll('.line_overall').remove();
+    d3.selectAll('.text_legend').remove();
+    d3.selectAll('.state').attr('stroke-width',1).attr('stroke','black').classed('selected',false);
+    g.select('.y_axis_label').remove();
+    all_selected_data=[];
+    firstUpdate=true;
+  }
+
   function updateLine(column, state,removeState=false){
+
+    console.log("column");
+    console.log(column);
+
+    var selected_data= data.filter(function(d){
+              return isFinite(d[column]) && selectRows(d,"State",state);
+            })
+
+    console.log("selected_data");
+    console.log(selected_data);
+
+    //Calculate domains of x and y variables. We will use this for scalling
+    const xDomain = selected_data.reduce((acc, row) => {
+      return {
+        min: Math.min(row["Year"], acc.min),
+        max: Math.max(row["Year"], acc.max)
+      };
+    }, {min: Infinity, max: -Infinity});
+
+    //Scale for x acis: # of homeless programs
+    var xScale = d3.scaleLinear()
+      .domain([xDomain.min, xDomain.max])
+      .range([0,plotWidth]); 
+
+
+
+
+    console.log("xDomain");
+    console.log(xDomain);
+
+    // if(column!=lastColumnSelected){
+    //     //We remove old plot and replace for a new one
+    //     d3.select('.g_plot').remove();
+    //     g =  svg_plot.append('g')
+    //           .attr('class','g_plot')
+    //           .attr('transform',`translate(${margin.left},${margin.top})`); 
+    //     all_selected_data=[];
+    //     firstUpdate=true;     
+    // }
+
 
     if(firstUpdate){
       firstUpdate=false;
 
+      g.select('.g_x_axis').remove();
+
       //X axis
       g.append('g')
+        .attr('class','g_x_axis')
         .call(d3.axisBottom(xScale).tickFormat(d3.format("d")))
         .attr('transform', `translate(0,${plotHeight})`)        ;
+
 
 
       
@@ -159,12 +240,13 @@ function renderPage(data,geodata){
         .text("Year");  
 
       g.append("text")
+            .attr('class','y_axis_label')
             .attr("transform", "rotate(-90)")
             .attr("x", -plotHeight/2)
             .attr("y", -margin.left*2/3)
             .attr('font-size', 14)
             .style("text-anchor", "middle")
-            .text("Number of homeless");
+            .text("Number of "+column);
 
       svg_plot
         .append('text')
@@ -178,27 +260,12 @@ function renderPage(data,geodata){
         .text("Evolution of number of homeless");      
 
 
-      //Caption
-      // const caption = svg_plot.selectAll('.caption')
-      //                     .data([{x: plotWidth-300, y: height-3,
-      //                             label: 'Source: U.S. Department of Housing and Urban Development (HUD)'}]); 
-      // caption.enter()
-      //   .append('text')
-      //   .attr('class', 'caption')
-      //   .attr('x', d => d.x)
-      //   .attr('y', d => d.y)
-      //   .attr('text-anchor', 'left')
-      //   .attr('font-size', 14)
-      //   .attr('font-family', 'georgia')
-      //   .attr('font-style', 'italic')
-      //   .text(d => d.label);
+
     }
     
     var duration1=2000;
 
-    var selected_data= data.filter(function(d){
-            return isFinite(d[column]) && selectRows(d,"State",state);
-          })
+   
 
 
     if(removeState){
@@ -215,13 +282,19 @@ function renderPage(data,geodata){
       });
     }
 
-    var yDomain = calculateDomain(all_selected_data,"Overall Homeless");
+    console.log('all_selected_data');
+    console.log(all_selected_data);
+    
+
+    var yDomain = calculateDomain(all_selected_data,column);
   
     //Scale for y axis: # of homeless people
-    const yScale = d3.scaleLinear()
+    var yScale = d3.scaleLinear()
       .domain([0, yDomain.max*1.01])
       .range([plotHeight,0]); 
 
+    console.log("yDomain");
+    console.log(yDomain);
 
 
     //Remove old y axis and append new
@@ -256,6 +329,9 @@ function renderPage(data,geodata){
       .attr("opacity", 1)
       .attr("d", function(d) { return overall_line(d.values); });
 
+    console.log('new_path');
+    console.log(new_path);
+
 
     lines.merge(new_path)
       .transition()
@@ -263,7 +339,7 @@ function renderPage(data,geodata){
       .attr("opacity", 0.5)  
       .transition()
       .duration(1000)
-      .attr("d", function(d) { console.log("d");console.log(d);return overall_line(d.values) });      
+      .attr("d", function(d) { return overall_line(d.values) });      
 
     lines.exit()
     .transition()
@@ -288,57 +364,20 @@ function renderPage(data,geodata){
     
 
 
-    // line.exit()
-    // .transition()
-    // //.duration(1000)
-    // .attr("opacity", 0)
-    // .remove();
-
-
-    //Legend
-    // var rect_legend = g.selectAll(".rect")
-    //   .data(selected_data, function (d) { return d["State"] });// ??
-    
-
-    // rect_legend
-    //   .enter()
-    //   .append("rect")
-    //   .transition()
-    //   .duration(duration1)
-    //   .attr('class', 'rect overall')
-    //   .attr('height',20)
-    //   .attr('width',20)
-    //   .attr('x', plotWidth+10)
-    //   .attr('y', yScale(calculateAverage(selected_data,column)))
-    //   .attr("opacity", 0.2);
-      
-    // rect_legend.exit()
-    // .transition()
-    // .attr("opacity", 0)
-    // .remove();
-
-    // var text_legend = g.selectAll(".text_legend")
-    //   .data(selected_data, function (d) { return d["State"] });
-    
-
-    console.log("selected_data");
-    console.log();
-
-    // text_legend
 
     d3.select(".text_legend").remove();
-
+    
     if(!removeState)
     {
       g.append("text")
-      .attr('y', 5+yScale(selected_data[1]["Overall Homeless"]))
+      .attr('y', 5+yScale(selected_data[0][column]))
       .transition()
       .duration(duration1)   
       .attr('class', 'text_legend')
       .attr('height',20)
       .attr('width',20)
       .attr('x', 10+plotWidth)
-      .attr('y', 5+yScale(selected_data[11]["Overall Homeless"]))
+      .attr('y', 5+yScale(selected_data[selected_data.length-1][column]))
       .text(abb_to_states[state]) 
       .attr("opacity", 0.2);
     }
@@ -414,32 +453,12 @@ function renderPage(data,geodata){
             .attr("width", mapWidth)
             .attr("height", mapHeight)
 
-    svg_map.append("text")
-      .attr("class", "mapTitle")
-      .attr('transform',`translate(50,30)`)
-      .style("font-size","20px")
-      .text("Select one (or more) states in the map to see how they have changed")
-
-    svg_map.append("text")
-      .attr("class", "mapTitle")
-      .attr('transform',`translate(50,50)`)
-      .style("font-size","20px")
-      .text("in time.")
-
-
-      // g.append("text")
-      //   .attr("x", plotWidth/2)
-      //   .attr("y", plotHeight+margin.bottom*2/3 )
-      //   .style("text-anchor", "middle")
-      //   .attr('font-size', 14)
-      //   .text("Year");  
 
 
 
     const g_map =  svg_map.append('g')
       .attr('transform',`translate(10,10)`);//${margin.left},${margin.top})`);
 
-    console.log(geodata.features);
 
 
     //Based on http://bl.ocks.org/dougdowson/9832019
@@ -462,6 +481,7 @@ function renderPage(data,geodata){
               return  colorScale(state_to_pop[states_to_abb[d.properties.name]]);})
             .on("click", function(d) {
              
+              console.log(selectedColumn);
               if(d3.select(this).classed('selected')){
                 //Remove! 
 
@@ -469,7 +489,7 @@ function renderPage(data,geodata){
                 d3.select('.text_legend').remove();
                 d3.select(this).attr('stroke-width',1);
                 d3.select(this).attr('stroke','black');
-                updateLine("Overall Homeless",states_to_abb[d.properties.name],true);
+                updateLine(selectedColumn,states_to_abb[d.properties.name],true);
                 d3.select(this).classed('selected',false);
               }
               else{//Not selected
@@ -479,7 +499,7 @@ function renderPage(data,geodata){
 
                 d3.select(this).attr('stroke','blue');
 
-                updateLine("Overall Homeless",states_to_abb[d.properties.name]);
+                updateLine(selectedColumn,states_to_abb[d.properties.name]);
 
                 d3.select(this).classed('selected',true); 
 
