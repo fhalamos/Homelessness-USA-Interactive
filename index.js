@@ -104,7 +104,7 @@ function renderPage(data,geodata){
 
   // <p class="instructions"> </p0
   
-  var homelessSubpopulations = ["Overall Homeless", "Chronically Homeless", "Homeless Veterans"];
+  var homelessSubpopulations = ["Overall Homeless", "Chronically Homeless", "Homeless Veterans", "Sheltered Total Homeless", "Unsheltered Homeless"];
   var selectedColumn = homelessSubpopulations[0];
 
   d3.select('.instructions')
