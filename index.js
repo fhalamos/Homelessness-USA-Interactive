@@ -137,6 +137,7 @@ function renderPage(data,geodata){
   var all_selected_data=[];
   var firstUpdate=true;
 
+
   function updateLine(column, state,removeState=false){
 
     if(firstUpdate){
@@ -262,13 +263,14 @@ function renderPage(data,geodata){
       .attr("opacity", 0.5)  
       .transition()
       .duration(1000)
-      .attr("d", function(d) { console.log("d");console.log(d);return overall_line(d.values) });
-      
+      .attr("d", function(d) { console.log("d");console.log(d);return overall_line(d.values) });      
 
     lines.exit()
     .transition()
     .attr("opacity", 0)
     .remove();
+
+
 
 
     //Used http://bl.ocks.org/duopixel/4063326 for animation
@@ -439,7 +441,13 @@ function renderPage(data,geodata){
 
     console.log(geodata.features);
 
-    g_map.selectAll(".state")
+
+    //Based on http://bl.ocks.org/dougdowson/9832019
+    var tooltip = d3.select("body").append("div")
+      .attr("class", "tooltip")
+      .style("opacity", 0);
+
+    var states_shapes = g_map.selectAll(".state")
             .data(geodata.features)
             .enter()
             .append('path')
@@ -480,6 +488,23 @@ function renderPage(data,geodata){
 
             });
 
+    //Add tooltips events. based on http://bl.ocks.org/dougdowson/9832019
+    states_shapes
+    .on("mouseover", function(d) {
+      tooltip.transition()
+      .duration(250)
+      .style("opacity", 1);
+
+      tooltip.html(d.properties.name)
+      .style("left", (d3.event.pageX ) + "px") //Set position of tooltip
+      .style("top", (d3.event.pageY) + "px");
+    })
+    .on("mouseout", function(d) {
+      tooltip.transition()
+      .duration(250)
+      .style("opacity", 0);
+    });
+
     //Used https://d3-legend.susielu.com/
     svg_map.append("g")
       .attr("class", "legendLinear")
@@ -496,6 +521,8 @@ function renderPage(data,geodata){
 
     svg_map.select(".legendLinear")
       .call(legendLinear);
+
+
   }
 };
 
