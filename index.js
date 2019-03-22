@@ -559,7 +559,7 @@ function renderPage(data,geodata){
       .duration(250)
       .style("opacity", 1);
 
-      tooltip.html(d.properties.name)
+      tooltip.html("<b>"+d.properties.name+"</b><br>Homeless/1000 hab: "+state_to_pop[states_to_abb[d.properties.name]].toFixed(1))
       .style("left", (d3.event.pageX ) + "px") //Set position of tooltip
       .style("top", (d3.event.pageY) + "px");
     })
