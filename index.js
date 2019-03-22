@@ -372,8 +372,8 @@ function renderPage(data,geodata){
    
     
     var colorScale = d3.scaleLinear()
-    .domain([Math.sqrt(homelessDomain.min), Math.sqrt(homelessDomain.max)])
-    .range(["#1a9641", "#d7191c"])
+    .domain([homelessDomain.min, homelessDomain.max])
+    .range(["#ffffcc", "#006837"])
     .interpolate(d3.interpolateRgb);
 
 
@@ -459,7 +459,7 @@ function renderPage(data,geodata){
             .attr('fill', "lightgrey")
             .attr('fill', function(d){
               
-              return  colorScale(Math.sqrt(state_to_pop[states_to_abb[d.properties.name]]));})
+              return  colorScale(state_to_pop[states_to_abb[d.properties.name]]);})
             .on("click", function(d) {
              
               if(d3.select(this).classed('selected')){
