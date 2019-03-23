@@ -163,4 +163,8 @@ a.links{
     text-align: center;
     align-items: center;
   }
+
+  footer{
+     height: 120px;
+  }
 }
