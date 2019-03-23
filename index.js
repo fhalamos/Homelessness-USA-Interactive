@@ -214,17 +214,6 @@ function renderPage(data,geodata){
 
 
 
-    // if(column!=lastColumnSelected){
-    //     //We remove old plot and replace for a new one
-    //     d3.select('.g_plot').remove();
-    //     g =  svg_plot.append('g')
-    //           .attr('class','g_plot')
-    //           .attr('transform',`translate(${margin.left},${margin.top})`); 
-    //     all_selected_data=[];
-    //     firstUpdate=true;     
-    // }
-
-
     if(firstUpdate){
       firstUpdate=false;
 
@@ -234,7 +223,12 @@ function renderPage(data,geodata){
       g.append('g')
         .attr('class','g_x_axis')
         .call(d3.axisBottom(xScale).tickFormat(d3.format("d")))
-        .attr('transform', `translate(0,${plotHeight})`);
+        .attr('transform', `translate(0,${plotHeight})`)
+        .selectAll("text")
+        .attr("y", 0)
+        .attr("x", 9)
+        .attr("transform", "rotate(90)")
+        .style("text-anchor", "start");;
 
 
       
