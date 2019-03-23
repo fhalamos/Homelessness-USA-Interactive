@@ -165,6 +165,8 @@ a.links{
   }
 
 
+
+
 }
 
 @media screen and (max-width:500px) {
@@ -174,3 +176,9 @@ a.links{
   }
 }
 
+@media screen and (max-width:350px) {
+
+  footer{
+     height: 170px;
+  }
+}

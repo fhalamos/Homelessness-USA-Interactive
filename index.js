@@ -234,8 +234,7 @@ function renderPage(data,geodata){
       g.append('g')
         .attr('class','g_x_axis')
         .call(d3.axisBottom(xScale).tickFormat(d3.format("d")))
-        .attr('transform', `translate(0,${plotHeight})`)        ;
-
+        .attr('transform', `translate(0,${plotHeight})`);
 
 
       
@@ -536,9 +535,13 @@ function renderPage(data,geodata){
       projectionScale=700;
       translateX=300;
     }
-    else {
+    else if(window.innerWidth>400){
       projectionScale=350;
       translateX=150;
+    }
+    else{
+      projectionScale=300;
+      translateX=100;
     }
 
     //Now map and chart are in vertical order, so we can increase width    
