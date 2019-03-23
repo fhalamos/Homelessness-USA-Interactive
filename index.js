@@ -432,7 +432,7 @@ function renderPage(data,geodata){
     
     var colorScale = d3.scaleLinear()
     .domain([homelessDomain.min, homelessDomain.max])
-    .range(["#ffffcc", "#006837"])
+    .range(["#ffffcc", "#006837"]) // Obtained from http://colorbrewer2.org/
     .interpolate(d3.interpolateRgb);
 
 
