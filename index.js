@@ -469,6 +469,7 @@ function renderPage(data,geodata){
 
     svg_map.select(".legendLinear")
       .call(legendLinear);
+
   }
 
   function createMap(){
@@ -621,14 +622,15 @@ function renderPage(data,geodata){
 
             });
 
-    //Add tooltips events. based on http://bl.ocks.org/dougdowson/9832019
+
+
     states_shapes
     .on("mouseover", function(d) {
       map_tooltip.transition()
       .duration(250)
       .style("opacity", 1);
 
-      map_tooltip.html("<b>"+d.properties.name+"</b><br>Homeless/1000 hab: "+state_to_pop[states_to_abb[d.properties.name]].toFixed(1))
+      map_tooltip.html("<b>"+d.properties.name+"</b>")
       .style("left", (d3.event.pageX ) + "px") //Set position of tooltip
       .style("top", (d3.event.pageY) + "px");
     })
