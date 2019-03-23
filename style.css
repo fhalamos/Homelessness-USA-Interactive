@@ -64,7 +64,7 @@ body {
 footer {
   background-color: steelblue;
   color: #FFF;
-  height: 80px;
+  height: 90px;
   text-align: right;
   padding-right: 10px;
 
@@ -164,7 +164,13 @@ a.links{
     align-items: center;
   }
 
+
+}
+
+@media screen and (max-width:500px) {
+
   footer{
-     height: 120px;
+     height: 150px;
   }
 }
+
