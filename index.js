@@ -115,7 +115,7 @@ function renderPage(data,geodata){
   d3.select('.instructions')
     .append('text')
     .attr('class','instructions_text')
-    .text('and click on the states you would like to study');
+    .text('and click on the states you would like to compare');
 
   var selector = d3.select('.instructions')
     .append('select')
@@ -131,7 +131,9 @@ function renderPage(data,geodata){
 
   function onSubpopulationChange() {
     selectedColumn = d3.select('select').property('value')
+    updateMapColors();
     removeAllLines(selectedColumn);
+
     //location.reload();
 
 
@@ -432,6 +434,63 @@ function renderPage(data,geodata){
 
   //Used https://github.com/mcnuttandrew/capp-30239/tree/master/week-8-map
   //Used https://d3indepth.com/geographic/
+  
+  function updateMapColors(){
+
+    var columnInRate = absolute_to_rate_column_name[selectedColumn];
+
+    var states_data= data.filter(function(d){
+            return isFinite(d[columnInRate]) && selectRows(d,"State","Total",false);
+          })
+
+    const state_to_pop = states_data.reduce((acc, row) => {
+      acc[row.State] = row[columnInRate];
+      return acc;
+    }, {});
+
+    const homelessDomain = calculateDomain(states_data,columnInRate);//computeDomain(statePops, 'pop');
+    
+    var colorScale = d3.scaleLinear()
+    .domain([homelessDomain.min, homelessDomain.max])
+    .range(["#ffffcc", "#006837"])
+    .interpolate(d3.interpolateRgb);
+
+
+    d3.selectAll(".state")
+        .data(geodata.features)
+        .attr('fill', function(d){
+          return  colorScale(state_to_pop[states_to_abb[d.properties.name]]);})
+  
+
+    //Used https://d3-legend.susielu.com/
+    d3.select('.legendLinear').remove();
+
+    var svg_map = d3.select('.svg_map');
+
+    svg_map
+      .append("g")
+      .attr("class", "legendLinear")
+      .attr('transform',`translate(40,500)`)
+      .style("font-size","20px");
+
+    var legendTitle = "Homeless every 1,000 people";
+    console.log(columnInRate);
+    if(columnInRate!=="Total/Capita" && columnInRate!=="Sheltered/Capita"){
+      legendTitle="Homeless every 10,000 people";
+    }
+    
+
+    var legendLinear = d3.legendColor()
+      //.titleWidth(100)
+      .title(legendTitle)      
+      .shapeWidth(50)
+      .orient('horizontal')
+      .scale(colorScale);
+
+    svg_map.select(".legendLinear")
+      .call(legendLinear);
+  }
+
   function createMap(){
 
     var width = window.innerWidth/2;
@@ -447,14 +506,19 @@ function renderPage(data,geodata){
     // we're going to be coloring our cells based on their homeless population so we should compute the
     // population domain
 
+    //Get the name of the column that contains the corresponding rate
+    var columnForColor = absolute_to_rate_column_name[selectedColumn];
+
+
+
     var states_data= data.filter(function(d){
-            return isFinite(d["Homeless/Capita"]) && selectRows(d,"State","Total",false);
+            return isFinite(d[columnForColor]) && selectRows(d,"State","Total",false);
           })
 
 
 
 
-    const homelessDomain = calculateDomain(states_data,"Homeless/Capita");//computeDomain(statePops, 'pop');
+    const homelessDomain = calculateDomain(states_data,columnForColor);//computeDomain(statePops, 'pop');
    
     
     var colorScale = d3.scaleLinear()
@@ -467,9 +531,11 @@ function renderPage(data,geodata){
             return isFinite(d["Year"]) && selectRows(d,"Year",2018);
           })
 
+    console.log(data_2018);
     //Create map from state to number of homeless in 2018, used for coloring
+    
     const state_to_pop = data_2018.reduce((acc, row) => {
-      acc[row.State] = row["Homeless/Capita"];
+      acc[row.State] = row[columnForColor];
       return acc;
     }, {});
 
@@ -514,6 +580,7 @@ function renderPage(data,geodata){
 
     var svg_map = d3.select(".map")
             .append("svg")
+            .attr('class','svg_map')
             .attr("width", mapWidth)
             .attr("height", mapHeight)
 
@@ -550,7 +617,6 @@ function renderPage(data,geodata){
             .attr('stroke', 'black')
             .attr('fill', "lightgrey")
             .attr('fill', function(d){
-              
               return  colorScale(state_to_pop[states_to_abb[d.properties.name]]);})
             .on("click", function(d) {
              
@@ -608,7 +674,7 @@ function renderPage(data,geodata){
     var legendLinear = d3.legendColor()
       //.titleWidth(100)
       .title("Homeless every 1,000 people")      
-      .shapeWidth(30)
+      .shapeWidth(50)
       .orient('horizontal')
       .scale(colorScale);
 
@@ -742,4 +808,12 @@ var abb_to_states = {
     "WV": "West Virginia",
     "WI": "Wisconsin",
     "WY": "Wyoming"
+}
+
+var absolute_to_rate_column_name = {
+    "Overall Homeless":"Total/Capita",
+    "Chronically Homeless":"Unsheltered/Capita",
+    "Homeless Veterans":"Veterans/Capita",
+    "Sheltered Total Homeless":"Sheltered/Capita",
+    "Unsheltered Homeless":"Unsheltered/Capita"
 }
