@@ -100,9 +100,6 @@ function calculateDomain(data,column){
 
 function renderPage(data,geodata){
 
-  //   <p class="instructions">Select one (or more) states in the map to see how they have changed in time </p>
-
-  // <p class="instructions"> </p0
   
   var homelessSubpopulations = ["Overall Homeless", "Chronically Homeless", "Homeless Veterans", "Sheltered Total Homeless", "Unsheltered Homeless"];
   var selectedColumn = homelessSubpopulations[0];
@@ -133,8 +130,6 @@ function renderPage(data,geodata){
     selectedColumn = d3.select('select').property('value')
     updateMapColors();
     removeAllLines(selectedColumn);
-
-    //location.reload();
 
 
   };
@@ -197,15 +192,11 @@ function renderPage(data,geodata){
 
   function updateLine(column, state,removeState=false){
 
-    console.log("column");
-    console.log(column);
 
     var selected_data= data.filter(function(d){
               return isFinite(d[column]) && selectRows(d,"State",state);
             })
 
-    console.log("selected_data");
-    console.log(selected_data);
 
     //Calculate domains of x and y variables. We will use this for scalling
     const xDomain = selected_data.reduce((acc, row) => {
@@ -222,9 +213,6 @@ function renderPage(data,geodata){
 
 
 
-
-    console.log("xDomain");
-    console.log(xDomain);
 
     // if(column!=lastColumnSelected){
     //     //We remove old plot and replace for a new one
@@ -308,8 +296,6 @@ function renderPage(data,geodata){
       });
     }
 
-    console.log('all_selected_data');
-    console.log(all_selected_data);
     
 
     var yDomain = calculateDomain(all_selected_data,column);
@@ -319,8 +305,6 @@ function renderPage(data,geodata){
       .domain([0, yDomain.max*1.01])
       .range([plotHeight,0]); 
 
-    console.log("yDomain");
-    console.log(yDomain);
 
 
     //Remove old y axis and append new
@@ -335,7 +319,6 @@ function renderPage(data,geodata){
 
 
     var nested_data = d3.nest().key(function(d){return d["State"];}).entries(all_selected_data);
-    console.log(nested_data)
    
     var overall_line = d3.line()
       .x(function(d) { return xScale(d["Year"]); }) 
@@ -354,9 +337,6 @@ function renderPage(data,geodata){
       .attr("stroke-width", 3)
       .attr("opacity", 1)
       .attr("d", function(d) { return overall_line(d.values); });
-
-    console.log('new_path');
-    console.log(new_path);
 
 
     lines.merge(new_path)
@@ -474,7 +454,7 @@ function renderPage(data,geodata){
       .style("font-size","20px");
 
     var legendTitle = "Homeless every 1,000 people";
-    console.log(columnInRate);
+   
     if(columnInRate!=="Total/Capita" && columnInRate!=="Sheltered/Capita"){
       legendTitle="Homeless every 10,000 people";
     }
@@ -510,13 +490,9 @@ function renderPage(data,geodata){
     var columnForColor = absolute_to_rate_column_name[selectedColumn];
 
 
-
     var states_data= data.filter(function(d){
             return isFinite(d[columnForColor]) && selectRows(d,"State","Total",false);
           })
-
-
-
 
     const homelessDomain = calculateDomain(states_data,columnForColor);//computeDomain(statePops, 'pop');
    
@@ -531,7 +507,6 @@ function renderPage(data,geodata){
             return isFinite(d["Year"]) && selectRows(d,"Year",2018);
           })
 
-    console.log(data_2018);
     //Create map from state to number of homeless in 2018, used for coloring
     
     const state_to_pop = data_2018.reduce((acc, row) => {
@@ -550,9 +525,9 @@ function renderPage(data,geodata){
 
 
 
-    console.log(window.innerWidth);
+
     if(window.innerWidth>1550){
-      console.log('hola');
+      
       projectionScale=800;
       translateX=400;
     }
@@ -620,11 +595,10 @@ function renderPage(data,geodata){
               return  colorScale(state_to_pop[states_to_abb[d.properties.name]]);})
             .on("click", function(d) {
              
-              console.log(selectedColumn);
+
               if(d3.select(this).classed('selected')){
                 //Remove! 
 
-                console.log(d3.select('.text_legend'));
                 d3.select('.text_legend').remove();
                 d3.select(this).attr('stroke-width',1);
                 d3.select(this).attr('stroke','black');
