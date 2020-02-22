@@ -509,7 +509,7 @@ function renderPage(data,geodata){
     }, {});
 
 
-    var map_title='Density of homeless per state';
+    var map_title='Density of homeless per state. Click them!';
 
     var projectionScale;
     var translateX;
